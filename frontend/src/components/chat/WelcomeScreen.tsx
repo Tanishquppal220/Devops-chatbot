@@ -42,7 +42,7 @@ export default function WelcomeScreen({ onPrompt }: WelcomeScreenProps) {
     <div className="flex flex-col items-center justify-center h-full px-6 animate-fade-in">
       {/* Hero */}
       <div className="text-center mb-10">
-        <div className="size-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-cyan-500/25">
+        <div className="size-16 rounded-2xl bg-linear-to-br from-cyan-500 to-teal-500 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-cyan-500/25">
           <Terminal className="size-7 text-white" />
         </div>
         <h2 className="text-3xl font-extrabold tracking-tight mb-2">
@@ -73,7 +73,7 @@ export default function WelcomeScreen({ onPrompt }: WelcomeScreenProps) {
           >
             <div
               className={`
-              size-9 rounded-lg bg-gradient-to-br ${s.color}
+              size-9 rounded-lg bg-linear-to-br ${s.color}
               flex items-center justify-center mb-3
               shadow-md ${s.shadow}
               group-hover:scale-110 transition-transform duration-300
