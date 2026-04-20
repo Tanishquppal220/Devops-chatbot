@@ -1,8 +1,16 @@
 /** Custom hook for chat state management + SSE streaming. */
 
 import { useState, useCallback, useRef } from 'react';
-import type { Message, ProgressStep, Conversation } from '../types/chat';
+import type {
+  AgentMode,
+  Conversation,
+  ConversationHistoryItem,
+  Message,
+  ProgressStep,
+} from '../types/chat';
 import { streamAnalysis } from '../utils/api';
+
+const HISTORY_WINDOW_SIZE = 8;
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -73,7 +81,7 @@ export function useChat() {
 
   /** Send a message and stream the response. */
   const sendMessage = useCallback(
-    async (command: string, codebasePath: string) => {
+    async (command: string, codebasePath: string, mode: AgentMode) => {
       if (isStreaming) return;
 
       // Ensure we have a conversation
@@ -97,7 +105,18 @@ export function useChat() {
         role: 'user',
         content: command,
         timestamp: new Date(),
+        mode,
       };
+
+      const currentMessages = conversations.find((c) => c.id === convoId)?.messages ?? [];
+      const conversationHistory: ConversationHistoryItem[] = [...currentMessages, userMsg]
+        .filter((msg) => msg.content.trim().length > 0)
+        .slice(-HISTORY_WINDOW_SIZE)
+        .map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+          agent: msg.agent,
+        }));
 
       // Update title if this is the first message
       const isFirst = (conversations.find((c) => c.id === convoId)?.messages.length ?? 0) === 0;
@@ -126,7 +145,7 @@ export function useChat() {
 
       try {
         await streamAnalysis(
-          { command, codebasePath },
+          { command, codebasePath, mode, conversationHistory },
           (event) => {
             switch (event.type) {
               case 'progress':

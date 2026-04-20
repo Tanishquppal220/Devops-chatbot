@@ -1,5 +1,6 @@
 """FastAPI application — DevOps Chatbot Backend."""
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -7,6 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as api_router
 from app.config import get_settings
+from app.prompts.library import list_available_prompts
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger("devops_chatbot")
 
 
 @asynccontextmanager
@@ -15,14 +23,21 @@ async def lifespan(app: FastAPI):
     # Validate critical settings on startup
     settings = get_settings()
     if not settings.google_api_key:
-        print(
-            "\n⚠️  WARNING: GOOGLE_API_KEY is not set. "
-            "Create a .env file (see .env.example).\n"
+        logger.warning(
+            "GOOGLE_API_KEY is not set. Create a .env file (see .env.example)."
         )
     else:
-        print(f"\n✅ DevOps Chatbot Backend ready — model: {settings.model_name}\n")
+        logger.info("DevOps Chatbot Backend ready — model: %s",
+                    settings.model_name)
+
+    prompt_names = list_available_prompts()
+    logger.info(
+        "Prompt library initialized (lazy-load): %s prompt files discovered",
+        len(prompt_names),
+    )
+    logger.debug("Prompt catalog: %s", ", ".join(prompt_names))
     yield
-    print("\n🛑 Shutting down…\n")
+    logger.info("Shutting down...")
 
 
 def create_app() -> FastAPI:

@@ -10,6 +10,7 @@ interface MessageBubbleProps {
 }
 
 const AGENT_META: Record<string, { icon: typeof Bot; color: string; label: string }> = {
+  general: { icon: Bot, color: 'from-cyan-500 to-teal-500', label: 'General DevOps Assistant' },
   dockerfile: { icon: FileCode2, color: 'from-blue-500 to-cyan-500', label: 'Dockerfile Agent' },
   testcase: { icon: TestTube, color: 'from-violet-500 to-purple-500', label: 'Test Case Agent' },
   bundlesize: { icon: Package, color: 'from-amber-500 to-orange-500', label: 'Bundle Size Agent' },
@@ -34,8 +35,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             size-8 rounded-xl shrink-0 flex items-center justify-center shadow-md
             ${
               agentInfo
-                ? `bg-gradient-to-br ${agentInfo.color}`
-                : 'bg-gradient-to-br from-cyan-500 to-teal-500'
+                ? `bg-linear-to-br ${agentInfo.color}`
+                : 'bg-linear-to-br from-cyan-500 to-teal-500'
             }
           `}
         >
@@ -72,7 +73,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {!isUser && agentInfo && !message.isStreaming && (
           <div className="flex items-center gap-1.5 mb-2">
             <span
-              className={`badge badge-xs bg-gradient-to-r ${agentInfo.color} text-white border-0 text-[9px] font-semibold px-2`}
+              className={`badge badge-xs bg-linear-to-r ${agentInfo.color} text-white border-0 text-[9px] font-semibold px-2`}
             >
               {agentInfo.label}
             </span>

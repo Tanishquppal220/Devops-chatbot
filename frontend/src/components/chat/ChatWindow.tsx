@@ -1,7 +1,7 @@
 /** Main chat window — message list + input bar. */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { Message } from '../../types/chat';
+import type { AgentMode, Message } from '../../types/chat';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
 import ChatInput from './ChatInput';
@@ -10,7 +10,7 @@ import WelcomeScreen from './WelcomeScreen';
 interface ChatWindowProps {
   messages: Message[];
   isStreaming: boolean;
-  onSend: (command: string, codebasePath: string) => void;
+  onSend: (command: string, codebasePath: string, mode: AgentMode) => void;
   onCancel: () => void;
   hasActiveConversation: boolean;
 }

@@ -1,12 +1,14 @@
 /** API helper for SSE streaming to the FastAPI backend. */
 
-import type { StreamEvent } from '../types/chat';
+import type { AgentMode, ConversationHistoryItem, StreamEvent } from '../types/chat';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 export interface AnalyzeParams {
   command: string;
   codebasePath: string;
+  mode: AgentMode;
+  conversationHistory: ConversationHistoryItem[];
 }
 
 /**
@@ -24,6 +26,8 @@ export async function streamAnalysis(
     body: JSON.stringify({
       command: params.command,
       codebase_path: params.codebasePath,
+      mode: params.mode,
+      conversation_history: params.conversationHistory,
     }),
     signal,
   });

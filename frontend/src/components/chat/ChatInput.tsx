@@ -2,9 +2,19 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { SendHorizonal, Square, FolderOpen } from 'lucide-react';
+import type { AgentMode } from '../../types/chat';
+
+const MODE_OPTIONS: Array<{ value: AgentMode; label: string }> = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'general', label: 'General' },
+  { value: 'dockerfile', label: 'Dockerfile' },
+  { value: 'testcase', label: 'Test Cases' },
+  { value: 'bundlesize', label: 'Bundle Size' },
+  { value: 'production', label: 'Production' },
+];
 
 interface ChatInputProps {
-  onSend: (command: string, codebasePath: string) => void;
+  onSend: (command: string, codebasePath: string, mode: AgentMode) => void;
   isStreaming: boolean;
   onCancel: () => void;
   initialPrompt?: string;
@@ -20,6 +30,7 @@ export default function ChatInput({
 }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [codebasePath, setCodebasePath] = useState('');
+  const [mode, setMode] = useState<AgentMode>('auto');
   const [showPath, setShowPath] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -44,7 +55,7 @@ export default function ChatInput({
   const handleSubmit = () => {
     const trimmed = message.trim();
     if (!trimmed || isStreaming) return;
-    onSend(trimmed, codebasePath.trim() || '/tmp');
+    onSend(trimmed, codebasePath.trim(), mode);
     setMessage('');
   };
 
@@ -75,6 +86,21 @@ export default function ChatInput({
       )}
 
       <div className="flex items-end gap-2">
+        <select
+          id="mode-select"
+          className="select select-sm select-bordered bg-base-200/50 shrink-0 mb-0.5 w-28"
+          value={mode}
+          onChange={(e) => setMode(e.target.value as AgentMode)}
+          disabled={isStreaming}
+          title="Routing mode"
+        >
+          {MODE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
         {/* Path toggle */}
         <button
           id="path-toggle-btn"
@@ -93,7 +119,7 @@ export default function ChatInput({
           <textarea
             id="chat-input"
             ref={textareaRef}
-            className="textarea textarea-bordered w-full min-h-[44px] max-h-[160px] resize-none bg-base-200/50 text-sm leading-relaxed pr-12 rounded-xl focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+            className="textarea textarea-bordered w-full min-h-11 max-h-40 resize-none bg-base-200/50 text-sm leading-relaxed pr-12 rounded-xl focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             placeholder="Ask about Dockerfiles, tests, bundle size, or production readiness…"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
