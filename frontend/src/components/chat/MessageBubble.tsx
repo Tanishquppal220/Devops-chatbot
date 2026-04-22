@@ -1,6 +1,6 @@
 ﻿/** Individual chat message bubble with markdown rendering. */
 
-import { useEffect, useMemo, useState } from 'react';
+import { isValidElement, useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { User, Bot, FileCode2, TestTube, Package, ShieldCheck, Copy, Check } from 'lucide-react';
@@ -26,10 +26,20 @@ function normalizeMarkdownContent(content: string): string {
   if (!content) return '';
 
   const normalizedNewlines = content.replace(/\r\n?/g, '\n');
-  return (
-    !normalizedNewlines.includes('\n') && /\\n/.test(normalizedNewlines)
-      ? normalizedNewlines.replace(/\\n/g, '\n').replace(/\\t/g, '\t')
-      : normalizedNewlines
+  const escapedNewlineCount = (normalizedNewlines.match(/\\n/g) ?? []).length;
+  const realNewlineCount = (normalizedNewlines.match(/\n/g) ?? []).length;
+  const shouldUnescape =
+    escapedNewlineCount >= 2 &&
+    escapedNewlineCount > realNewlineCount &&
+    /\\n|\\t|\\`{3}/.test(normalizedNewlines);
+
+  return (shouldUnescape
+    ? normalizedNewlines
+        .replace(/\\r\\n/g, '\n')
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, '\t')
+        .replace(/\\`/g, '`')
+    : normalizedNewlines
   ).trimEnd();
 }
 
@@ -133,7 +143,54 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <p>{message.content}</p>
         ) : normalizedContent ? (
           <div className="chat-markdown">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{normalizedContent}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                pre({ children }) {
+                  if (!isValidElement(children)) {
+                    return <pre>{children}</pre>;
+                  }
+
+                  const codeElement = children as ReactElement<{
+                    className?: string;
+                    children?: ReactNode;
+                  }>;
+                  const className = codeElement.props.className ?? '';
+                  const language = className.replace('language-', '').trim() || 'text';
+                  const codeValue = String(codeElement.props.children ?? '').replace(/\n$/, '');
+
+                  const copyCodeBlock = async () => {
+                    try {
+                      await navigator.clipboard.writeText(codeValue);
+                    } catch {
+                      // noop: keep UI stable if clipboard blocked
+                    }
+                  };
+
+                  return (
+                    <div className="chat-code-block">
+                      <div className="chat-code-block__header">
+                        <span className="chat-code-block__lang">{language}</span>
+                        <button
+                          type="button"
+                          onClick={copyCodeBlock}
+                          className="chat-code-block__copy"
+                          aria-label={`Copy ${language} code`}
+                          title="Copy code"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <pre>
+                        <code className={className}>{codeValue}</code>
+                      </pre>
+                    </div>
+                  );
+                },
+              }}
+            >
+              {normalizedContent}
+            </ReactMarkdown>
           </div>
         ) : null}
 
