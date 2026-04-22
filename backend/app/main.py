@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router as api_router
 from app.config import get_settings
 from app.prompts.library import list_available_prompts
+from app.storage.sqlite_store import get_chat_store
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,6 +21,9 @@ logger = logging.getLogger("devops_chatbot")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup / shutdown hooks."""
+    chat_store = get_chat_store()
+    chat_store.init_schema()
+
     # Validate critical settings on startup
     settings = get_settings()
     if not settings.google_api_key:

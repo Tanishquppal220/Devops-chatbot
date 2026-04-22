@@ -1,14 +1,22 @@
 /** Custom hook for chat state management + SSE streaming. */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type {
   AgentMode,
   Conversation,
   ConversationHistoryItem,
+  ConversationRecord,
   Message,
   ProgressStep,
+  StoredMessageRecord,
 } from '../types/chat';
-import { streamAnalysis } from '../utils/api';
+import {
+  createConversation,
+  deleteConversationById,
+  fetchConversationMessages,
+  fetchConversations,
+  streamAnalysis,
+} from '../utils/api';
 
 const HISTORY_WINDOW_SIZE = 8;
 
@@ -19,46 +27,39 @@ function generateId(): string {
 function generateTitle(command: string): string {
   const trimmed = command.trim();
   if (trimmed.length <= 40) return trimmed;
-  return trimmed.slice(0, 37) + '…';
+  return `${trimmed.slice(0, 37)}...`;
+}
+
+function toConversation(record: ConversationRecord): Conversation {
+  return {
+    id: record.id,
+    title: record.title,
+    messages: [],
+    createdAt: new Date(record.created_at),
+    updatedAt: new Date(record.updated_at),
+  };
+}
+
+function toMessage(record: StoredMessageRecord): Message {
+  const role = record.role === 'assistant' ? 'assistant' : 'user';
+  return {
+    id: record.id,
+    role,
+    content: record.content,
+    timestamp: new Date(record.created_at),
+    agent: record.agent || undefined,
+  };
 }
 
 export function useChat() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) ?? null;
   const messages = activeConversation?.messages ?? [];
-
-  /** Create a new conversation and set it as active. */
-  const newChat = useCallback(() => {
-    const convo: Conversation = {
-      id: generateId(),
-      title: 'New Chat',
-      messages: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setConversations((prev) => [convo, ...prev]);
-    setActiveConversationId(convo.id);
-  }, []);
-
-  /** Switch to an existing conversation. */
-  const switchConversation = useCallback((id: string) => {
-    setActiveConversationId(id);
-  }, []);
-
-  /** Delete a conversation. */
-  const deleteConversation = useCallback(
-    (id: string) => {
-      setConversations((prev) => prev.filter((c) => c.id !== id));
-      if (activeConversationId === id) {
-        setActiveConversationId(null);
-      }
-    },
-    [activeConversationId],
-  );
 
   /** Helper to update a specific conversation's messages. */
   const updateConvoMessages = useCallback(
@@ -79,6 +80,95 @@ export function useChat() {
     [],
   );
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadConversations() {
+      try {
+        const items = await fetchConversations();
+        if (cancelled) return;
+        const normalized = items.map(toConversation);
+        setConversations(normalized);
+        if (normalized.length > 0) {
+          setActiveConversationId(normalized[0].id);
+        }
+      } catch {
+        // Keep UI usable even when persistence backend is unavailable.
+      }
+    }
+
+    void loadConversations();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!activeConversationId) return;
+    const active = conversations.find((c) => c.id === activeConversationId);
+    if (!active || active.messages.length > 0) return;
+
+    let cancelled = false;
+    setIsLoading(true);
+    void fetchConversationMessages(activeConversationId)
+      .then((records) => {
+        if (cancelled) return;
+        const mapped = records.map(toMessage);
+        updateConvoMessages(activeConversationId, () => mapped);
+      })
+      .catch(() => {
+        // Ignore to avoid blocking chat UX.
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeConversationId, conversations, updateConvoMessages]);
+
+  /** Create a new conversation and set it as active. */
+  const newChat = useCallback(() => {
+    void createConversation('New Chat')
+      .then((record) => {
+        const convo = toConversation(record);
+        setConversations((prev) => [convo, ...prev]);
+        setActiveConversationId(convo.id);
+      })
+      .catch(() => {
+        const fallback: Conversation = {
+          id: generateId(),
+          title: 'New Chat',
+          messages: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        setConversations((prev) => [fallback, ...prev]);
+        setActiveConversationId(fallback.id);
+      });
+  }, []);
+
+  /** Switch to an existing conversation. */
+  const switchConversation = useCallback((id: string) => {
+    setActiveConversationId(id);
+  }, []);
+
+  /** Delete a conversation. */
+  const deleteConversation = useCallback(
+    (id: string) => {
+      void deleteConversationById(id).catch(() => {
+        // Keep local deletion behavior if backend delete fails.
+      });
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeConversationId === id) {
+        const next = conversations.find((c) => c.id !== id);
+        setActiveConversationId(next?.id ?? null);
+      }
+    },
+    [activeConversationId, conversations],
+  );
+
   /** Send a message and stream the response. */
   const sendMessage = useCallback(
     async (command: string, codebasePath: string, mode: AgentMode) => {
@@ -87,16 +177,24 @@ export function useChat() {
       // Ensure we have a conversation
       let convoId = activeConversationId;
       if (!convoId) {
-        const convo: Conversation = {
-          id: generateId(),
-          title: generateTitle(command),
-          messages: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        setConversations((prev) => [convo, ...prev]);
-        setActiveConversationId(convo.id);
-        convoId = convo.id;
+        try {
+          const created = await createConversation(generateTitle(command));
+          const convo = toConversation(created);
+          setConversations((prev) => [convo, ...prev]);
+          setActiveConversationId(convo.id);
+          convoId = convo.id;
+        } catch {
+          const convo: Conversation = {
+            id: generateId(),
+            title: generateTitle(command),
+            messages: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          setConversations((prev) => [convo, ...prev]);
+          setActiveConversationId(convo.id);
+          convoId = convo.id;
+        }
       }
 
       // Add user message
@@ -145,7 +243,7 @@ export function useChat() {
 
       try {
         await streamAnalysis(
-          { command, codebasePath, mode, conversationHistory },
+          { command, codebasePath, mode, conversationHistory, conversationId: convoId },
           (event) => {
             switch (event.type) {
               case 'progress':
@@ -198,7 +296,7 @@ export function useChat() {
                     m.id === botMsgId
                       ? {
                           ...m,
-                          content: `❌ Error: ${event.content}`,
+                          content: `Error: ${event.content}`,
                           isStreaming: false,
                         }
                       : m,
@@ -222,7 +320,7 @@ export function useChat() {
               m.id === botMsgId
                 ? {
                     ...m,
-                    content: `❌ Connection error: ${(err as Error).message}`,
+                    content: `Connection error: ${(err as Error).message}`,
                     isStreaming: false,
                   }
                 : m,
@@ -248,6 +346,7 @@ export function useChat() {
     activeConversationId,
     messages,
     isStreaming,
+    isLoading,
     newChat,
     switchConversation,
     deleteConversation,

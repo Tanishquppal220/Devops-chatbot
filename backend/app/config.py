@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     google_api_key: str = ""
     model_name: str = "gemini-2.0-flash"
+    sqlite_db_path: str = "./data/devops_chatbot.db"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

@@ -1,8 +1,9 @@
-/** Individual chat message bubble with markdown rendering. */
+﻿/** Individual chat message bubble with markdown rendering. */
 
+import { isValidElement, useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { User, Bot, FileCode2, TestTube, Package, ShieldCheck } from 'lucide-react';
+import { User, Bot, FileCode2, TestTube, Package, ShieldCheck, Copy, Check } from 'lucide-react';
 import type { Message } from '../../types/chat';
 
 interface MessageBubbleProps {
@@ -21,14 +22,55 @@ const AGENT_META: Record<string, { icon: typeof Bot; color: string; label: strin
   },
 };
 
+function normalizeMarkdownContent(content: string): string {
+  if (!content) return '';
+
+  const normalizedNewlines = content.replace(/\r\n?/g, '\n');
+  const escapedNewlineCount = (normalizedNewlines.match(/\\n/g) ?? []).length;
+  const realNewlineCount = (normalizedNewlines.match(/\n/g) ?? []).length;
+  const shouldUnescape =
+    escapedNewlineCount >= 2 &&
+    escapedNewlineCount > realNewlineCount &&
+    /\\n|\\t|\\`{3}/.test(normalizedNewlines);
+
+  return (shouldUnescape
+    ? normalizedNewlines
+        .replace(/\\r\\n/g, '\n')
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, '\t')
+        .replace(/\\`/g, '`')
+    : normalizedNewlines
+  ).trimEnd();
+}
+
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const agentInfo = message.agent ? AGENT_META[message.agent] : null;
   const AgentIcon = agentInfo?.icon ?? Bot;
+  const [copied, setCopied] = useState(false);
+
+  const normalizedContent = useMemo(
+    () => normalizeMarkdownContent(message.content ?? ''),
+    [message.content],
+  );
+
+  useEffect(() => {
+    if (!copied) return;
+    const timeout = window.setTimeout(() => setCopied(false), 1200);
+    return () => window.clearTimeout(timeout);
+  }, [copied]);
+
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(normalizedContent);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   return (
     <div className={`flex gap-3 px-4 py-2 animate-message-in ${isUser ? 'justify-end' : ''}`}>
-      {/* Bot avatar */}
       {!isUser && (
         <div
           className={`
@@ -44,7 +86,6 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         </div>
       )}
 
-      {/* Bubble */}
       <div
         className={`
           max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed
@@ -55,7 +96,6 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           }
         `}
       >
-        {/* Progress steps */}
         {!isUser && message.progressSteps && message.progressSteps.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-2.5">
             {message.progressSteps.map((step, i) => (
@@ -69,7 +109,6 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           </div>
         )}
 
-        {/* Agent label */}
         {!isUser && agentInfo && !message.isStreaming && (
           <div className="flex items-center gap-1.5 mb-2">
             <span
@@ -79,28 +118,87 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             </span>
             {message.filesAnalyzed !== undefined && message.filesAnalyzed > 0 && (
               <span className="text-[10px] text-base-content/40 font-medium">
-                · {message.filesAnalyzed} files analyzed
+                {'\u00B7'} {message.filesAnalyzed} files analyzed
               </span>
             )}
           </div>
         )}
 
-        {/* Content */}
+        {!isUser && normalizedContent && (
+          <div className="mb-2 flex items-center justify-end">
+            <button
+              type="button"
+              onClick={copyMessage}
+              className="btn btn-ghost btn-xs gap-1.5 text-base-content/70 hover:text-base-content"
+              aria-label="Copy message"
+              title="Copy message"
+            >
+              {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+        )}
+
         {isUser ? (
           <p>{message.content}</p>
-        ) : message.content ? (
+        ) : normalizedContent ? (
           <div className="chat-markdown">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                pre({ children }) {
+                  if (!isValidElement(children)) {
+                    return <pre>{children}</pre>;
+                  }
+
+                  const codeElement = children as ReactElement<{
+                    className?: string;
+                    children?: ReactNode;
+                  }>;
+                  const className = codeElement.props.className ?? '';
+                  const language = className.replace('language-', '').trim() || 'text';
+                  const codeValue = String(codeElement.props.children ?? '').replace(/\n$/, '');
+
+                  const copyCodeBlock = async () => {
+                    try {
+                      await navigator.clipboard.writeText(codeValue);
+                    } catch {
+                      // noop: keep UI stable if clipboard blocked
+                    }
+                  };
+
+                  return (
+                    <div className="chat-code-block">
+                      <div className="chat-code-block__header">
+                        <span className="chat-code-block__lang">{language}</span>
+                        <button
+                          type="button"
+                          onClick={copyCodeBlock}
+                          className="chat-code-block__copy"
+                          aria-label={`Copy ${language} code`}
+                          title="Copy code"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <pre>
+                        <code className={className}>{codeValue}</code>
+                      </pre>
+                    </div>
+                  );
+                },
+              }}
+            >
+              {normalizedContent}
+            </ReactMarkdown>
           </div>
         ) : null}
 
-        {/* Streaming cursor */}
         {message.isStreaming && (
           <span className="inline-block w-1.5 h-4 bg-primary/70 rounded-sm animate-pulse ml-0.5 align-text-bottom" />
         )}
       </div>
 
-      {/* User avatar */}
       {isUser && (
         <div className="size-8 rounded-xl shrink-0 flex items-center justify-center bg-base-300/80 shadow-sm">
           <User className="size-4 text-base-content/60" />

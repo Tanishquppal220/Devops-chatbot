@@ -26,6 +26,7 @@ export interface StreamEvent {
   agent?: string;
   files_analyzed?: number;
   routing_source?: string;
+  conversation_id?: string;
 }
 
 export interface ConversationHistoryItem {
@@ -40,4 +41,22 @@ export interface Conversation {
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ConversationRecord {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  last_message_at: string;
+}
+
+export interface StoredMessageRecord {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  content: string;
+  agent: string;
+  message_order: number;
+  created_at: string;
 }

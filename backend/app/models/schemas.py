@@ -35,6 +35,10 @@ class AnalyzeRequest(BaseModel):
         default_factory=list,
         description="Recent chat history for context-aware auto routing",
     )
+    conversation_id: str = Field(
+        default="",
+        description="Optional existing conversation UUID; when omitted, a new conversation is created",
+    )
 
 
 class AnalyzeResponse(BaseModel):
@@ -47,6 +51,9 @@ class AnalyzeResponse(BaseModel):
     )
     routing_source: str = Field(
         default="", description="How the final agent was selected")
+    conversation_id: str = Field(
+        default="", description="Conversation UUID associated with this exchange"
+    )
 
 
 class StreamEvent(BaseModel):
@@ -61,3 +68,31 @@ class StreamEvent(BaseModel):
     files_analyzed: int = Field(default=0, description="Files scanned so far")
     routing_source: str = Field(
         default="", description="How agent selection was resolved")
+
+
+class ConversationCreateRequest(BaseModel):
+    """Create conversation request body."""
+
+    title: str = Field(default="New Chat", description="Conversation title")
+
+
+class ConversationResponse(BaseModel):
+    """Conversation metadata returned to clients."""
+
+    id: str
+    title: str
+    created_at: str
+    updated_at: str
+    last_message_at: str
+
+
+class StoredMessageResponse(BaseModel):
+    """Stored chat message record."""
+
+    id: str
+    conversation_id: str
+    role: Literal["user", "assistant", "system", "tool"]
+    content: str
+    agent: str = ""
+    message_order: int
+    created_at: str
