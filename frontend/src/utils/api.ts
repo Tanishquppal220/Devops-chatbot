@@ -1,6 +1,12 @@
 /** API helper for SSE streaming to the FastAPI backend. */
 
-import type { AgentMode, ConversationHistoryItem, StreamEvent } from '../types/chat';
+import type {
+  AgentMode,
+  ConversationHistoryItem,
+  ConversationRecord,
+  StoredMessageRecord,
+  StreamEvent,
+} from '../types/chat';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
@@ -9,6 +15,7 @@ export interface AnalyzeParams {
   codebasePath: string;
   mode: AgentMode;
   conversationHistory: ConversationHistoryItem[];
+  conversationId?: string;
 }
 
 /**
@@ -28,6 +35,7 @@ export async function streamAnalysis(
       codebase_path: params.codebasePath,
       mode: params.mode,
       conversation_history: params.conversationHistory,
+      conversation_id: params.conversationId ?? '',
     }),
     signal,
   });
@@ -62,6 +70,50 @@ export async function streamAnalysis(
         // skip malformed SSE lines
       }
     }
+  }
+}
+
+export async function createConversation(title = 'New Chat'): Promise<ConversationRecord> {
+  const response = await fetch(`${API_BASE}/api/v1/conversations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Create conversation failed ${response.status}: ${text}`);
+  }
+  return (await response.json()) as ConversationRecord;
+}
+
+export async function fetchConversations(): Promise<ConversationRecord[]> {
+  const response = await fetch(`${API_BASE}/api/v1/conversations`);
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Fetch conversations failed ${response.status}: ${text}`);
+  }
+  return (await response.json()) as ConversationRecord[];
+}
+
+export async function fetchConversationMessages(
+  conversationId: string,
+): Promise<StoredMessageRecord[]> {
+  const response = await fetch(`${API_BASE}/api/v1/conversations/${conversationId}/messages`);
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Fetch messages failed ${response.status}: ${text}`);
+  }
+  return (await response.json()) as StoredMessageRecord[];
+}
+
+export async function deleteConversationById(conversationId: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/api/v1/conversations/${conversationId}`, {
+    method: 'DELETE',
+  });
+  if (response.status === 404) return;
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Delete conversation failed ${response.status}: ${text}`);
   }
 }
 

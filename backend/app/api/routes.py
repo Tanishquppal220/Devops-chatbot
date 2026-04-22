@@ -8,10 +8,67 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.agents.graph import graph
-from app.models.schemas import AnalyzeRequest, AnalyzeResponse
+from app.models.schemas import (
+    AnalyzeRequest,
+    AnalyzeResponse,
+    ConversationCreateRequest,
+    ConversationResponse,
+    StoredMessageResponse,
+)
+from app.storage.sqlite_store import get_chat_store
 
 logger = logging.getLogger("devops_chatbot.api.routes")
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
+HISTORY_WINDOW_SIZE = 8
+
+
+def _title_from_command(command: str) -> str:
+    """Generate a compact default title from a user command."""
+    cleaned = command.strip()
+    if not cleaned:
+        return "New Chat"
+    return cleaned if len(cleaned) <= 40 else f"{cleaned[:37]}..."
+
+
+def _resolve_conversation(request: AnalyzeRequest) -> str:
+    """Return a valid conversation id, creating one when needed."""
+    store = get_chat_store()
+    requested_id = request.conversation_id.strip()
+    if requested_id:
+        if store.get_conversation(requested_id) is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Conversation not found: {requested_id}",
+            )
+        return requested_id
+
+    created = store.create_conversation(_title_from_command(request.command))
+    return created["id"]
+
+
+def _build_history(request: AnalyzeRequest, conversation_id: str) -> list[dict[str, str]]:
+    """Build routing history from request payload or stored messages."""
+    if request.conversation_history:
+        return [
+            {
+                "role": item.role,
+                "content": item.content,
+                "agent": item.agent,
+            }
+            for item in request.conversation_history
+        ]
+
+    store = get_chat_store()
+    recent_messages = store.list_messages(conversation_id, limit=HISTORY_WINDOW_SIZE)
+    return [
+        {
+            "role": message["role"],
+            "content": message["content"],
+            "agent": message["agent"],
+        }
+        for message in recent_messages
+        if message["role"] in {"user", "assistant"} and message["content"].strip()
+    ]
 
 
 def _sse(data: dict) -> str:
@@ -53,6 +110,40 @@ def _content_to_text(content: object) -> str:
     return str(content)
 
 
+@router.post("/conversations", response_model=ConversationResponse)
+async def create_conversation(payload: ConversationCreateRequest):
+    """Create and return a new conversation record."""
+    store = get_chat_store()
+    created = store.create_conversation(payload.title.strip() or "New Chat")
+    return ConversationResponse(**created)
+
+
+@router.get("/conversations", response_model=list[ConversationResponse])
+async def list_conversations():
+    """List recent conversations."""
+    store = get_chat_store()
+    return [ConversationResponse(**item) for item in store.list_conversations()]
+
+
+@router.get("/conversations/{conversation_id}/messages", response_model=list[StoredMessageResponse])
+async def list_conversation_messages(conversation_id: str):
+    """List messages in one conversation."""
+    store = get_chat_store()
+    if store.get_conversation(conversation_id) is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return [StoredMessageResponse(**item) for item in store.list_messages(conversation_id)]
+
+
+@router.delete("/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str):
+    """Delete a conversation and its messages."""
+    store = get_chat_store()
+    deleted = store.delete_conversation(conversation_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"status": "deleted", "id": conversation_id}
+
+
 # ── Streaming endpoint ────────────────────────────────────────────
 
 @router.post("/analyze/stream", response_class=StreamingResponse)
@@ -75,6 +166,14 @@ async def analyze_stream(request: AnalyzeRequest):
     )
 
     has_codebase_path = bool(request.codebase_path.strip())
+    conversation_id = _resolve_conversation(request)
+    store = get_chat_store()
+    store.add_message(
+        conversation_id=conversation_id,
+        role="user",
+        content=request.command,
+    )
+    conversation_history = _build_history(request, conversation_id)
 
     # Validate the path only when it is provided
     if has_codebase_path and not Path(request.codebase_path).is_dir():
@@ -96,14 +195,7 @@ async def analyze_stream(request: AnalyzeRequest):
                 "command": request.command,
                 "codebase_path": request.codebase_path,
                 "mode": request.mode,
-                "conversation_history": [
-                    {
-                        "role": item.role,
-                        "content": item.content,
-                        "agent": item.agent,
-                    }
-                    for item in request.conversation_history
-                ],
+                "conversation_history": conversation_history,
                 "intent": "",
                 "routing_source": "",
                 "code_context": "",
@@ -222,16 +314,29 @@ async def analyze_stream(request: AnalyzeRequest):
                 routing_source,
                 files_count,
             )
+            final_text = "".join(accumulated_result)
+            store.add_message(
+                conversation_id=conversation_id,
+                role="assistant",
+                content=final_text,
+                agent=detected_agent,
+            )
             yield _sse({
                 "type": "result",
-                "content": "".join(accumulated_result),
+                "content": final_text,
                 "agent": detected_agent,
                 "files_analyzed": files_count,
                 "routing_source": routing_source,
+                "conversation_id": conversation_id,
             })
 
         except Exception as exc:
             logger.exception("Error during analysis streaming")
+            store.add_message(
+                conversation_id=conversation_id,
+                role="assistant",
+                content=f"Error: {exc}",
+            )
             yield _sse({"type": "error", "content": str(exc)})
 
         logger.info(
@@ -262,6 +367,15 @@ async def analyze(request: AnalyzeRequest):
         len(request.conversation_history),
     )
     has_codebase_path = bool(request.codebase_path.strip())
+    conversation_id = _resolve_conversation(request)
+    store = get_chat_store()
+    store.add_message(
+        conversation_id=conversation_id,
+        role="user",
+        content=request.command,
+    )
+    conversation_history = _build_history(request, conversation_id)
+
     if has_codebase_path and not Path(request.codebase_path).is_dir():
         logger.error("Invalid codebase path: %s", request.codebase_path)
         raise HTTPException(
@@ -274,14 +388,7 @@ async def analyze(request: AnalyzeRequest):
             "command": request.command,
             "codebase_path": request.codebase_path,
             "mode": request.mode,
-            "conversation_history": [
-                {
-                    "role": item.role,
-                    "content": item.content,
-                    "agent": item.agent,
-                }
-                for item in request.conversation_history
-            ],
+            "conversation_history": conversation_history,
             "intent": "",
             "routing_source": "",
             "code_context": "",
@@ -289,6 +396,13 @@ async def analyze(request: AnalyzeRequest):
             "messages": [],
             "result": "",
         }
+    )
+
+    store.add_message(
+        conversation_id=conversation_id,
+        role="assistant",
+        content=result.get("result", ""),
+        agent=result.get("intent", ""),
     )
 
     logger.info(
@@ -302,4 +416,5 @@ async def analyze(request: AnalyzeRequest):
         analysis=result.get("result", ""),
         files_analyzed=result.get("files_analyzed", 0),
         routing_source=result.get("routing_source", ""),
+        conversation_id=conversation_id,
     )

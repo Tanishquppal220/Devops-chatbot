@@ -8,3 +8,10 @@ build/
 *.pyc
 *.pyo
 *.pyd
+
+Add:
+
+# SQLite (local/dev)
+devops_chatbot.db
+devops_chatbot.db-shm
+devops_chatbot.db-wal
