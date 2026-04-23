@@ -96,7 +96,7 @@ try {
     Write-Host "Backend running on PID: $($backendProcess.Id)"
 
     Write-Info 'Starting Frontend...'
-    $frontendProcess = Start-Process -FilePath npm -ArgumentList 'run', 'dev' -WorkingDirectory $frontendDir -NoNewWindow -PassThru
+    $frontendProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c npm run dev" -WorkingDirectory $frontendDir -NoNewWindow -PassThru
     Write-Host "Frontend running on PID: $($frontendProcess.Id)"
 
     Write-Success '✨ Both services are running!'
