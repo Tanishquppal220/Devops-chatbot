@@ -3,9 +3,9 @@
 import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.config import get_settings
+from app.llm import build_chat_model
 from app.models.state import AgentState
 from app.prompts.library import get_prompt
 
@@ -20,11 +20,7 @@ async def bundlesize_node(state: AgentState) -> dict:
         state["command"],
         settings.model_name,
     )
-    llm = ChatGoogleGenerativeAI(
-        model=settings.model_name,
-        google_api_key=settings.google_api_key,
-        temperature=0.3,
-    )
+    llm = build_chat_model(temperature=0.3)
     system_prompt = get_prompt("bundlesize")
 
     user_msg = (
@@ -41,3 +37,4 @@ async def bundlesize_node(state: AgentState) -> dict:
         len(response.content) if response.content else 0,
     )
     return {"result": response.content, "messages": [response]}
+

@@ -6,7 +6,9 @@ import type {
   Conversation,
   ConversationHistoryItem,
   ConversationRecord,
+  DeploymentTarget,
   Message,
+  ModelRuntime,
   ProgressStep,
   StoredMessageRecord,
 } from '../types/chat';
@@ -171,7 +173,13 @@ export function useChat() {
 
   /** Send a message and stream the response. */
   const sendMessage = useCallback(
-    async (command: string, codebasePath: string, mode: AgentMode) => {
+    async (
+      command: string,
+      codebasePath: string,
+      mode: AgentMode,
+      deploymentTarget: DeploymentTarget,
+      modelRuntime: ModelRuntime,
+    ) => {
       if (isStreaming) return;
 
       // Ensure we have a conversation
@@ -204,6 +212,8 @@ export function useChat() {
         content: command,
         timestamp: new Date(),
         mode,
+        deploymentTarget,
+        modelRuntime,
       };
 
       const currentMessages = conversations.find((c) => c.id === convoId)?.messages ?? [];
@@ -243,7 +253,15 @@ export function useChat() {
 
       try {
         await streamAnalysis(
-          { command, codebasePath, mode, conversationHistory, conversationId: convoId },
+          {
+            command,
+            codebasePath,
+            mode,
+            deploymentTarget,
+            modelRuntime,
+            conversationHistory,
+            conversationId: convoId,
+          },
           (event) => {
             switch (event.type) {
               case 'progress':

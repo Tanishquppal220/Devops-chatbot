@@ -3,9 +3,9 @@
 import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.config import get_settings
+from app.llm import build_chat_model
 from app.models.state import AgentState
 from app.prompts.library import get_prompt
 
@@ -20,11 +20,7 @@ async def general_node(state: AgentState) -> dict:
         state["command"],
         settings.model_name,
     )
-    llm = ChatGoogleGenerativeAI(
-        model=settings.model_name,
-        google_api_key=settings.google_api_key,
-        temperature=0.2,
-    )
+    llm = build_chat_model(temperature=0.2)
     system_prompt = get_prompt("general")
 
     user_msg = (

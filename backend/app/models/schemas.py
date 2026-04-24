@@ -31,6 +31,14 @@ class AnalyzeRequest(BaseModel):
         default="auto",
         description="Routing mode; explicit mode overrides auto classification",
     )
+    deployment_target: Literal["edge", "cloud"] = Field(
+        default="cloud",
+        description="Execution target preference from UI",
+    )
+    model_runtime: Literal["cloud", "lmstudio"] = Field(
+        default="cloud",
+        description="Model runtime preference from UI",
+    )
     conversation_history: list[ConversationHistoryItem] = Field(
         default_factory=list,
         description="Recent chat history for context-aware auto routing",

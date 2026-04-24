@@ -4,6 +4,8 @@ import type {
   AgentMode,
   ConversationHistoryItem,
   ConversationRecord,
+  DeploymentTarget,
+  ModelRuntime,
   StoredMessageRecord,
   StreamEvent,
 } from '../types/chat';
@@ -14,6 +16,8 @@ export interface AnalyzeParams {
   command: string;
   codebasePath: string;
   mode: AgentMode;
+  deploymentTarget: DeploymentTarget;
+  modelRuntime: ModelRuntime;
   conversationHistory: ConversationHistoryItem[];
   conversationId?: string;
 }
@@ -34,6 +38,8 @@ export async function streamAnalysis(
       command: params.command,
       codebase_path: params.codebasePath,
       mode: params.mode,
+      deployment_target: params.deploymentTarget,
+      model_runtime: params.modelRuntime,
       conversation_history: params.conversationHistory,
       conversation_id: params.conversationId ?? '',
     }),

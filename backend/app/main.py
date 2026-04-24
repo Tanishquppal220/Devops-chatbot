@@ -1,4 +1,4 @@
-"""FastAPI application — DevOps Chatbot Backend."""
+"""FastAPI application - DevOps Chatbot Backend."""
 
 import logging
 from contextlib import asynccontextmanager
@@ -26,13 +26,25 @@ async def lifespan(app: FastAPI):
 
     # Validate critical settings on startup
     settings = get_settings()
-    if not settings.google_api_key:
+    provider = settings.model_provider.strip().lower()
+    if provider == "google" and not settings.google_api_key:
         logger.warning(
-            "GOOGLE_API_KEY is not set. Create a .env file (see .env.example)."
+            "MODEL_PROVIDER=google but GOOGLE_API_KEY missing. "
+            "Create .env file (see .env.example)."
+        )
+    elif provider in {"lmstudio", "lm-studio"}:
+        logger.info(
+            "DevOps Chatbot Backend ready - provider: %s, model: %s, base_url: %s",
+            settings.model_provider,
+            settings.model_name,
+            settings.lmstudio_base_url,
         )
     else:
-        logger.info("DevOps Chatbot Backend ready — model: %s",
-                    settings.model_name)
+        logger.info(
+            "DevOps Chatbot Backend ready - provider: %s, model: %s",
+            settings.model_provider,
+            settings.model_name,
+        )
 
     prompt_names = list_available_prompts()
     logger.info(
@@ -56,7 +68,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # ── CORS (allow frontend dev servers) ─────────────────────────
+    # CORS (allow frontend dev servers)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],  # tighten in production
@@ -65,7 +77,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # ── Routes ────────────────────────────────────────────────────
+    # Routes
     app.include_router(api_router)
 
     @app.get("/health", tags=["system"])
