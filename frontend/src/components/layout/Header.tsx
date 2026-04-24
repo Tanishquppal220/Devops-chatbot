@@ -6,18 +6,21 @@ import ThemeToggle from '../common/ThemeToggle';
 interface HeaderProps {
   onToggleSidebar: () => void;
   agentLabel?: string;
+  isSidebarOpen: boolean;
 }
 
-export default function Header({ onToggleSidebar, agentLabel }: HeaderProps) {
+export default function Header({ onToggleSidebar, agentLabel, isSidebarOpen }: HeaderProps) {
   return (
     <header
       id="app-header"
-      className="navbar bg-base-100/80 backdrop-blur-xl border-b border-base-300/50 sticky top-0 z-30 px-4"
+      className="navbar bg-base-100/75 backdrop-blur-xl border-b border-base-300/50 sticky top-0 z-30 px-4"
     >
-      <div className="flex-none lg:hidden">
+      <div className="flex-none">
         <button
           id="sidebar-toggle"
-          className="btn btn-ghost btn-circle btn-sm"
+          className={`btn btn-ghost btn-circle btn-sm transition-colors ${
+            isSidebarOpen ? 'text-primary bg-primary/10' : ''
+          }`}
           onClick={onToggleSidebar}
           aria-label="Toggle sidebar"
         >

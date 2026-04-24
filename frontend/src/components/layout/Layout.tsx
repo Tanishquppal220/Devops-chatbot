@@ -24,10 +24,10 @@ export default function Layout({
   onSelectConversation,
   onDeleteConversation,
 }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="h-screen flex overflow-hidden bg-base-100">
+    <div className="h-screen flex overflow-hidden bg-base-100 app-shell">
       {/* Sidebar */}
       <Sidebar
         conversations={conversations}
@@ -50,8 +50,9 @@ export default function Layout({
         <Header
           onToggleSidebar={() => setSidebarOpen((o) => !o)}
           agentLabel={agentLabel}
+          isSidebarOpen={sidebarOpen}
         />
-        <main className="flex-1 overflow-hidden">{children}</main>
+        <main className="flex-1 overflow-hidden bg-base-100/35">{children}</main>
       </div>
     </div>
   );
