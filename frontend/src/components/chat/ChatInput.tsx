@@ -67,7 +67,7 @@ export default function ChatInput({
   };
 
   return (
-    <div className="border-t border-base-300/50 bg-base-100/80 backdrop-blur-xl p-4">
+    <div className="py-3 md:py-4">
       {/* Codebase path input (collapsible) */}
       {showPath && (
         <div className="mb-3 animate-message-in">

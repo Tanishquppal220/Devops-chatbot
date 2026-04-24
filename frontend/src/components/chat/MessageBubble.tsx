@@ -88,7 +88,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
       <div
         className={`
-          max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed
+          max-w-[min(90%,80ch)] rounded-2xl px-4 py-3 text-sm leading-relaxed
           ${
             isUser
               ? 'bg-primary text-primary-content rounded-br-md'

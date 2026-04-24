@@ -35,12 +35,16 @@ export default function Sidebar({
       <aside
         id="sidebar"
         className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          w-72 bg-base-200/95 backdrop-blur-xl
+          fixed lg:relative inset-y-0 left-0 z-50
+          bg-base-200/90 backdrop-blur-xl
           border-r border-base-300/50
-          flex flex-col
-          transition-transform duration-300 ease-out
-          ${isOpen ? 'translate-x-0 animate-slide-in-left' : '-translate-x-full lg:translate-x-0'}
+          flex flex-col shrink-0
+          transition-all duration-300 ease-out
+          ${
+            isOpen
+              ? 'translate-x-0 w-72 opacity-100 animate-slide-in-left'
+              : '-translate-x-full lg:translate-x-0 lg:w-0 opacity-0 lg:opacity-100 lg:border-r-0 overflow-hidden'
+          }
         `}
       >
         {/* Sidebar header */}

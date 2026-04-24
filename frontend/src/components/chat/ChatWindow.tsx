@@ -50,13 +50,13 @@ export default function ChatWindow({
     (messages[messages.length - 1]?.progressSteps?.length ?? 0) === 0;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       {/* Messages area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 md:px-6 pt-4">
         {showWelcome ? (
           <WelcomeScreen onPrompt={handleWelcomePrompt} />
         ) : (
-          <div className="max-w-3xl mx-auto py-6">
+          <div className="w-full py-2 md:py-4">
             {messages.map((msg) => (
               <MessageBubble key={msg.id} message={msg} />
             ))}
@@ -68,7 +68,7 @@ export default function ChatWindow({
       </div>
 
       {/* Input bar */}
-      <div className="max-w-3xl mx-auto w-full">
+      <div className="w-full border-t border-base-300/50 bg-base-100/80 backdrop-blur-xl px-3 md:px-6">
         <ChatInput
           onSend={onSend}
           isStreaming={isStreaming}
