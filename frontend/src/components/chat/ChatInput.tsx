@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { SendHorizonal, Square, FolderOpen } from 'lucide-react';
-import type { AgentMode, DeploymentTarget, ModelRuntime } from '../../types/chat';
+import type { AgentMode, DeploymentTarget } from '../../types/chat';
 
 const MODE_OPTIONS: Array<{ value: AgentMode; label: string }> = [
   { value: 'auto', label: 'Auto' },
@@ -19,7 +19,6 @@ interface ChatInputProps {
     codebasePath: string,
     mode: AgentMode,
     deploymentTarget: DeploymentTarget,
-    modelRuntime: ModelRuntime,
   ) => void;
   isStreaming: boolean;
   onCancel: () => void;
@@ -38,7 +37,6 @@ export default function ChatInput({
   const [codebasePath, setCodebasePath] = useState('');
   const [mode, setMode] = useState<AgentMode>('auto');
   const [deploymentTarget, setDeploymentTarget] = useState<DeploymentTarget>('cloud');
-  const [modelRuntime, setModelRuntime] = useState<ModelRuntime>('cloud');
   const [showPath, setShowPath] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,7 +61,7 @@ export default function ChatInput({
   const handleSubmit = () => {
     const trimmed = message.trim();
     if (!trimmed || isStreaming) return;
-    onSend(trimmed, codebasePath.trim(), mode, deploymentTarget, modelRuntime);
+    onSend(trimmed, codebasePath.trim(), mode, deploymentTarget);
     setMessage('');
   };
 
@@ -104,18 +102,6 @@ export default function ChatInput({
         >
           <option value="cloud">Cloud</option>
           <option value="edge">Edge</option>
-        </select>
-
-        <select
-          id="model-runtime-select"
-          className="select select-sm select-bordered bg-base-200/50 shrink-0 mb-0.5 w-32"
-          value={modelRuntime}
-          onChange={(e) => setModelRuntime(e.target.value as ModelRuntime)}
-          disabled={isStreaming}
-          title="Model runtime"
-        >
-          <option value="cloud">Cloud Model</option>
-          <option value="lmstudio">LM Studio</option>
         </select>
 
         <select

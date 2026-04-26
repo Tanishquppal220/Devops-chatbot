@@ -1,7 +1,7 @@
 /** Main chat window — message list + input bar. */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { AgentMode, DeploymentTarget, Message, ModelRuntime } from '../../types/chat';
+import type { AgentMode, DeploymentTarget, Message } from '../../types/chat';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
 import ChatInput from './ChatInput';
@@ -15,7 +15,6 @@ interface ChatWindowProps {
     codebasePath: string,
     mode: AgentMode,
     deploymentTarget: DeploymentTarget,
-    modelRuntime: ModelRuntime,
   ) => void;
   onCancel: () => void;
   hasActiveConversation: boolean;

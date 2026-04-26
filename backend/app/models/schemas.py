@@ -35,7 +35,7 @@ class AnalyzeRequest(BaseModel):
         default="cloud",
         description="Execution target preference from UI",
     )
-    model_runtime: Literal["cloud", "lmstudio"] = Field(
+    model_runtime: Literal["cloud", "edge", "lmstudio"] = Field(
         default="cloud",
         description="Model runtime preference from UI",
     )

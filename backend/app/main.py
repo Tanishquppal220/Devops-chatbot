@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as api_router
 from app.config import get_settings
+from app.llm.runtime import get_edge_runtime_status
 from app.prompts.library import list_available_prompts
 from app.storage.sqlite_store import get_chat_store
 
@@ -26,24 +27,33 @@ async def lifespan(app: FastAPI):
 
     # Validate critical settings on startup
     settings = get_settings()
-    provider = settings.model_provider.strip().lower()
-    if provider == "google" and not settings.google_api_key:
+    cloud_model = settings.cloud_model_name.strip() or settings.model_name.strip() or "gemini-2.0-flash"
+    edge_model = settings.edge_model_name.strip() or settings.model_name.strip()
+
+    if not settings.google_api_key:
         logger.warning(
-            "MODEL_PROVIDER=google but GOOGLE_API_KEY missing. "
-            "Create .env file (see .env.example)."
+            "GOOGLE_API_KEY missing. Cloud runtime will fail until key is set."
         )
-    elif provider in {"lmstudio", "lm-studio"}:
+
+    if not edge_model:
+        logger.warning(
+            "EDGE_MODEL_NAME missing (and MODEL_NAME fallback empty). "
+            "Edge runtime will fail until model name is configured."
+        )
+
+    edge_status = get_edge_runtime_status()
+    if edge_status["active"]:
         logger.info(
-            "DevOps Chatbot Backend ready - provider: %s, model: %s, base_url: %s",
-            settings.model_provider,
-            settings.model_name,
-            settings.lmstudio_base_url,
+            "DevOps Chatbot Backend ready - cloud_model=%s edge_model=%s edge_status=active",
+            cloud_model,
+            edge_model or "(unset)",
         )
     else:
         logger.info(
-            "DevOps Chatbot Backend ready - provider: %s, model: %s",
-            settings.model_provider,
-            settings.model_name,
+            "DevOps Chatbot Backend ready - cloud_model=%s edge_model=%s edge_status=inactive (%s)",
+            cloud_model,
+            edge_model or "(unset)",
+            edge_status["reason"] or "unknown",
         )
 
     prompt_names = list_available_prompts()

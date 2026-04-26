@@ -2,7 +2,6 @@
 
 export type AgentMode = 'auto' | 'general' | 'dockerfile' | 'testcase' | 'bundlesize' | 'production';
 export type DeploymentTarget = 'edge' | 'cloud';
-export type ModelRuntime = 'cloud' | 'lmstudio';
 
 export interface Message {
   id: string;
@@ -11,7 +10,6 @@ export interface Message {
   timestamp: Date;
   mode?: AgentMode;
   deploymentTarget?: DeploymentTarget;
-  modelRuntime?: ModelRuntime;
   agent?: string;
   filesAnalyzed?: number;
   isStreaming?: boolean;

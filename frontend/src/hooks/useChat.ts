@@ -8,11 +8,11 @@ import type {
   ConversationRecord,
   DeploymentTarget,
   Message,
-  ModelRuntime,
   ProgressStep,
   StoredMessageRecord,
 } from '../types/chat';
 import {
+  checkEdgeRuntimeStatus,
   createConversation,
   deleteConversationById,
   fetchConversationMessages,
@@ -178,7 +178,6 @@ export function useChat() {
       codebasePath: string,
       mode: AgentMode,
       deploymentTarget: DeploymentTarget,
-      modelRuntime: ModelRuntime,
     ) => {
       if (isStreaming) return;
 
@@ -213,7 +212,6 @@ export function useChat() {
         timestamp: new Date(),
         mode,
         deploymentTarget,
-        modelRuntime,
       };
 
       const currentMessages = conversations.find((c) => c.id === convoId)?.messages ?? [];
@@ -252,13 +250,19 @@ export function useChat() {
       abortRef.current = controller;
 
       try {
+        if (deploymentTarget === 'edge') {
+          const edgeStatus = await checkEdgeRuntimeStatus();
+          if (!edgeStatus.active) {
+            throw new Error(edgeStatus.reason || 'Edge runtime unavailable');
+          }
+        }
+
         await streamAnalysis(
           {
             command,
             codebasePath,
             mode,
             deploymentTarget,
-            modelRuntime,
             conversationHistory,
             conversationId: convoId,
           },

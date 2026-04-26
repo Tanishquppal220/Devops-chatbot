@@ -5,7 +5,6 @@ import type {
   ConversationHistoryItem,
   ConversationRecord,
   DeploymentTarget,
-  ModelRuntime,
   StoredMessageRecord,
   StreamEvent,
 } from '../types/chat';
@@ -17,9 +16,16 @@ export interface AnalyzeParams {
   codebasePath: string;
   mode: AgentMode;
   deploymentTarget: DeploymentTarget;
-  modelRuntime: ModelRuntime;
   conversationHistory: ConversationHistoryItem[];
   conversationId?: string;
+}
+
+export interface EdgeRuntimeStatus {
+  active: boolean;
+  reachable: boolean;
+  configured_model: string;
+  loaded_models: string[];
+  reason: string;
 }
 
 /**
@@ -39,7 +45,7 @@ export async function streamAnalysis(
       codebase_path: params.codebasePath,
       mode: params.mode,
       deployment_target: params.deploymentTarget,
-      model_runtime: params.modelRuntime,
+      model_runtime: params.deploymentTarget,
       conversation_history: params.conversationHistory,
       conversation_id: params.conversationId ?? '',
     }),
@@ -121,6 +127,15 @@ export async function deleteConversationById(conversationId: string): Promise<vo
     const text = await response.text();
     throw new Error(`Delete conversation failed ${response.status}: ${text}`);
   }
+}
+
+export async function checkEdgeRuntimeStatus(): Promise<EdgeRuntimeStatus> {
+  const response = await fetch(`${API_BASE}/api/v1/runtime/edge/status`);
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Edge runtime check failed ${response.status}: ${text}`);
+  }
+  return (await response.json()) as EdgeRuntimeStatus;
 }
 
 /** Simple health check. */

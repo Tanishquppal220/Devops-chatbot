@@ -4,7 +4,6 @@ import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.config import get_settings
 from app.llm import build_chat_model
 from app.models.state import AgentState
 from app.prompts.library import get_prompt
@@ -14,13 +13,13 @@ logger = logging.getLogger("devops_chatbot.agents.bundlesize_agent")
 
 async def bundlesize_node(state: AgentState) -> dict:
     """Analyse dependencies and suggest bundle-size reductions."""
-    settings = get_settings()
+    runtime = state["model_runtime"]
     logger.info(
-        "Starting bundlesize agent for command=%s using model=%s",
+        "Starting bundlesize agent for command=%s runtime=%s",
         state["command"],
-        settings.model_name,
+        runtime,
     )
-    llm = build_chat_model(temperature=0.3)
+    llm = build_chat_model(runtime=runtime, temperature=0.3)
     system_prompt = get_prompt("bundlesize")
 
     user_msg = (

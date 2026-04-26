@@ -13,6 +13,7 @@ class AgentState(TypedDict):
         command: Original user command/request.
         codebase_path: Absolute path to the codebase directory.
         mode: Requested routing mode (auto or explicit agent mode).
+        model_runtime: Runtime selected from UI (cloud | edge).
         conversation_history: Recent messages used for context-aware routing.
         intent: Classified intent (general | dockerfile | testcase | bundlesize | production).
         routing_source: How routing was resolved (explicit | context-aware | keyword | llm-fallback | general-default).
@@ -26,6 +27,7 @@ class AgentState(TypedDict):
     codebase_path: str
     mode: Literal["auto", "general", "dockerfile",
                   "testcase", "bundlesize", "production"]
+    model_runtime: Literal["cloud", "edge"]
     conversation_history: list[dict[str, str]]
     intent: str
     routing_source: str
