@@ -10,6 +10,8 @@ interface LayoutProps {
   conversations: Conversation[];
   activeConversationId: string | null;
   agentLabel?: string;
+  isBackendReady: boolean;
+  isCheckingBackend: boolean;
   onNewChat: () => void;
   onSelectConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
@@ -20,6 +22,8 @@ export default function Layout({
   conversations,
   activeConversationId,
   agentLabel,
+  isBackendReady,
+  isCheckingBackend,
   onNewChat,
   onSelectConversation,
   onDeleteConversation,
@@ -32,6 +36,8 @@ export default function Layout({
       <Sidebar
         conversations={conversations}
         activeId={activeConversationId}
+        isBackendReady={isBackendReady}
+        isCheckingBackend={isCheckingBackend}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onNewChat={() => {

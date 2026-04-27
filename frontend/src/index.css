@@ -26,24 +26,60 @@
   --neo-accent: #ff9352;
   --neo-success: #168a61;
   --neo-danger: #d14444;
+  --neo-surface: #eceae3;
+  --neo-surface-soft: #f3f1eb;
+  --neo-border: #1b222d;
+  --neo-border-soft: #5e6978;
+  --neo-shadow-hard: rgba(22, 30, 42, 0.56);
+  --neo-shadow-soft: rgba(22, 30, 42, 0.38);
+  --neo-btn-bg: #f4f1e9;
+  --neo-control-bg: #f8f7f3;
+  --bg-glow-a: rgba(54, 84, 255, 0.16);
+  --bg-glow-b: rgba(255, 147, 82, 0.13);
+  --bg-stripe: rgba(54, 84, 255, 0.08);
+  --code-bg: #101722;
+  --code-fg: #e6efff;
+  --code-border: #242f42;
+  --code-inline-bg: color-mix(in oklab, var(--neo-bg-soft) 88%, var(--neo-border) 12%);
+  --code-header-bg: color-mix(in oklab, var(--neo-bg-soft) 82%, var(--neo-border) 18%);
+  --code-copy-bg: #e8e3da;
+  --code-copy-color: var(--neo-ink);
 }
 
 [data-theme='dark'] {
-  --p: oklch(0.73 0.16 268);
-  --s: oklch(0.72 0.12 78);
-  --a: oklch(0.7 0.14 50);
-  --b1: oklch(0.18 0.015 265);
-  --b2: oklch(0.22 0.015 265);
-  --b3: oklch(0.27 0.015 265);
-  --bc: oklch(0.92 0.01 255);
-  --neo-bg: #0f1318;
-  --neo-bg-soft: #1a212b;
-  --neo-ink: #f3f6fb;
-  --neo-ink-soft: #aab4c2;
-  --neo-primary: #8298ff;
-  --neo-accent: #ffb27a;
-  --neo-success: #42c98a;
-  --neo-danger: #ff8a8a;
+  --p: oklch(0.73 0.11 269);
+  --s: oklch(0.60 0.08 62);
+  --a: oklch(0.58 0.10 38);
+  --b1: oklch(0.18 0.010 266);
+  --b2: oklch(0.22 0.012 266);
+  --b3: oklch(0.26 0.013 266);
+  --bc: oklch(0.88 0.01 255);
+  --neo-bg: #0b1016;
+  --neo-bg-soft: #141c26;
+  --neo-ink: #d9e0ea;
+  --neo-ink-soft: #8a97a8;
+  --neo-primary: #5e6dd0;
+  --neo-accent: #5a76c9;
+  --neo-success: #42917d;
+  --neo-danger: #bc675f;
+  --neo-surface: #161d27;
+  --neo-surface-soft: #111722;
+  --neo-border: #32415a;
+  --neo-border-soft: #293749;
+  --neo-shadow-hard: rgba(0, 0, 0, 0.72);
+  --neo-shadow-soft: rgba(0, 0, 0, 0.55);
+  --neo-btn-bg: #171f2b;
+  --neo-control-bg: #10161f;
+  --bg-glow-a: rgba(98, 110, 192, 0.09);
+  --bg-glow-b: rgba(90, 118, 201, 0.06);
+  --bg-stripe: rgba(255, 255, 255, 0.02);
+  --code-bg: #111825;
+  --code-fg: #d1dae6;
+  --code-border: #1f2a3b;
+  --code-inline-bg: color-mix(in oklab, var(--neo-surface) 96%, var(--neo-border) 4%);
+  --code-header-bg: color-mix(in oklab, var(--neo-surface) 92%, var(--neo-border) 8%);
+  --code-copy-bg: #10161f;
+  --code-copy-color: var(--neo-ink-soft);
 }
 
 :root {
@@ -95,11 +131,11 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(60rem 24rem at -12% -18%, color-mix(in oklab, var(--neo-primary) 14%, transparent), transparent 68%),
-    radial-gradient(56rem 28rem at 112% 118%, color-mix(in oklab, var(--neo-accent) 13%, transparent), transparent 70%),
+    radial-gradient(60rem 24rem at -12% -18%, var(--bg-glow-a), transparent 68%),
+    radial-gradient(56rem 28rem at 112% 118%, var(--bg-glow-b), transparent 70%),
     repeating-linear-gradient(
       -35deg,
-      color-mix(in oklab, var(--neo-primary) 8%, transparent) 0 18px,
+      var(--bg-stripe) 0 18px,
       transparent 18px 36px
     );
   opacity: 0.62;
@@ -107,26 +143,26 @@ body {
 }
 
 .neo-frame {
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 72%, transparent);
+  border: var(--surface-border) solid var(--neo-border);
   border-radius: var(--surface-radius);
-  box-shadow: var(--surface-shadow);
-  background: color-mix(in oklab, var(--neo-bg-soft) 90%, transparent);
+  box-shadow: 8px 8px 0 var(--neo-shadow-hard);
+  background: var(--neo-surface);
 }
 
 .neo-frame-soft {
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 38%, transparent);
+  border: var(--surface-border) solid var(--neo-border-soft);
   border-radius: var(--surface-radius-sm);
-  box-shadow: var(--surface-shadow-soft);
-  background: color-mix(in oklab, var(--neo-bg-soft) 86%, transparent);
+  box-shadow: 5px 5px 0 var(--neo-shadow-soft);
+  background: var(--neo-surface-soft);
 }
 
 .neo-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 60%, transparent);
+  border: var(--surface-border) solid var(--neo-border);
   border-radius: 4px;
-  background: color-mix(in oklab, var(--neo-primary) 18%, var(--neo-bg));
+  background: color-mix(in oklab, var(--neo-primary) 24%, var(--neo-surface));
   color: var(--neo-ink);
   padding: 0.22rem 0.56rem;
   font-size: 0.66rem;
@@ -136,22 +172,23 @@ body {
 }
 
 .neo-btn {
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 62%, transparent);
+  border: var(--surface-border) solid var(--neo-border);
   border-radius: var(--surface-radius-sm);
-  box-shadow: 3px 3px 0 color-mix(in oklab, var(--neo-ink) 52%, transparent);
-  background: color-mix(in oklab, var(--neo-bg) 72%, white 28%);
+  box-shadow: 3px 3px 0 var(--neo-shadow-hard);
+  background: var(--neo-btn-bg);
   color: var(--neo-ink);
   transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
 }
 
 .neo-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 color-mix(in oklab, var(--neo-ink) 58%, transparent);
+  box-shadow: 5px 5px 0 var(--neo-shadow-hard);
+  background: color-mix(in oklab, var(--neo-btn-bg) 82%, white 18%);
 }
 
 .neo-btn:active {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 color-mix(in oklab, var(--neo-ink) 50%, transparent);
+  box-shadow: 1px 1px 0 var(--neo-shadow-hard);
 }
 
 .neo-btn-primary {
@@ -165,9 +202,9 @@ body {
 }
 
 .neo-control {
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 50%, transparent);
+  border: var(--surface-border) solid var(--neo-border-soft);
   border-radius: var(--surface-radius-sm);
-  background: color-mix(in oklab, var(--neo-bg) 72%, #fff 28%);
+  background: var(--neo-control-bg);
   color: var(--neo-ink);
   outline: none;
 }
@@ -213,20 +250,98 @@ body {
 }
 
 /* ── Typing dots animation ────────────────────────────────────── */
-@keyframes bounce-dot {
-  0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.4;
+@keyframes status-bar-rise {
+  0%, 100% {
+    transform: scaleY(0.45);
+    opacity: 0.55;
   }
-  40% {
-    transform: scale(1);
+  50% {
+    transform: scaleY(1);
     opacity: 1;
   }
 }
 
-.animate-dot-1 { animation: bounce-dot 1.4s infinite 0s; }
-.animate-dot-2 { animation: bounce-dot 1.4s infinite 0.2s; }
-.animate-dot-3 { animation: bounce-dot 1.4s infinite 0.4s; }
+@keyframes status-sheen {
+  from {
+    background-position: -220% 0;
+  }
+  to {
+    background-position: 220% 0;
+  }
+}
+
+.generation-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: var(--surface-border) solid var(--neo-border-soft);
+  border-radius: var(--surface-radius-sm);
+  background:
+    linear-gradient(
+      105deg,
+      color-mix(in oklab, var(--neo-bg-soft) 78%, transparent) 0%,
+      color-mix(in oklab, var(--neo-primary) 14%, var(--neo-bg-soft) 86%) 50%,
+      color-mix(in oklab, var(--neo-bg-soft) 82%, transparent) 100%
+    );
+  background-size: 220% 100%;
+  animation: status-sheen 3.2s linear infinite;
+  padding: 0.7rem 0.85rem;
+  box-shadow: 4px 4px 0 color-mix(in oklab, var(--neo-ink) 45%, transparent);
+}
+
+.generation-status__bars {
+  display: inline-flex;
+  align-items: end;
+  gap: 0.2rem;
+  height: 1.05rem;
+}
+
+.generation-status__bars > span {
+  width: 0.16rem;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--neo-primary) 78%, var(--neo-ink) 22%);
+  transform-origin: bottom;
+  animation: status-bar-rise 1.2s ease-in-out infinite;
+}
+
+.generation-status__bars > span:nth-child(2) { animation-delay: 120ms; }
+.generation-status__bars > span:nth-child(3) { animation-delay: 240ms; }
+.generation-status__bars > span:nth-child(4) { animation-delay: 360ms; }
+
+.generation-status__title {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--neo-ink);
+}
+
+.generation-status__subtitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin: 0.1rem 0 0;
+  color: var(--neo-ink-soft);
+}
+
+.generation-status__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.9rem;
+  height: 1.45rem;
+  border: var(--surface-border) solid var(--neo-border);
+  border-radius: 3px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: color-mix(in oklab, var(--neo-primary) 75%, var(--neo-bg) 25%);
+  color: #fff;
+}
 
 /* ── Pulse glow for streaming indicator ───────────────────────── */
 @keyframes pulse-glow {
@@ -306,8 +421,9 @@ body {
   font-size: 0.85em;
   padding: 0.15em 0.4em;
   border-radius: 0.4rem;
-  background: color-mix(in oklab, var(--neo-accent) 18%, transparent);
-  border: 1px solid color-mix(in oklab, var(--neo-ink) 60%, transparent);
+  background: var(--code-inline-bg);
+  border: 1px solid var(--code-border);
+  color: var(--code-inline-fg);
 }
 
 .chat-markdown pre {
@@ -315,8 +431,9 @@ body {
   padding: 1em;
   border-radius: 0.35rem;
   overflow-x: auto;
-  background: color-mix(in oklab, var(--neo-ink) 92%, #000 8%) !important;
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 72%, transparent);
+  background: var(--code-bg) !important;
+  color: var(--code-fg);
+  border: var(--surface-border) solid var(--code-border);
 }
 
 .chat-markdown pre code {
@@ -324,11 +441,12 @@ body {
   padding: 0;
   font-size: 0.8em;
   line-height: 1.6;
+  color: var(--code-fg);
 }
 
 .chat-code-block {
   margin: 0.75em 0;
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 72%, transparent);
+  border: var(--surface-border) solid var(--code-border);
   border-radius: 0.35rem;
   overflow: hidden;
 }
@@ -339,23 +457,23 @@ body {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.35rem 0.65rem;
-  background: color-mix(in oklab, var(--neo-accent) 24%, var(--neo-bg-soft));
-  border-bottom: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 62%, transparent);
+  background: var(--code-header-bg);
+  border-bottom: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 48%, transparent);
 }
 
 .chat-code-block__lang {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   text-transform: lowercase;
-  color: var(--neo-ink);
+  color: var(--neo-ink-soft);
   font-weight: 600;
 }
 
 .chat-code-block__copy {
-  border: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 62%, transparent);
+  border: var(--surface-border) solid var(--neo-border);
   border-radius: 0.25rem;
-  background: var(--neo-bg);
-  color: var(--neo-ink);
+  background: var(--code-copy-bg);
+  color: var(--code-copy-color);
   font-size: 0.75rem;
   padding: 0.2rem 0.45rem;
   cursor: pointer;
@@ -363,14 +481,16 @@ body {
 }
 
 .chat-code-block__copy:hover {
-  background: var(--neo-primary);
-  color: #fff;
+  background: color-mix(in oklab, var(--neo-border) 60%, var(--code-copy-bg) 40%);
+  color: var(--neo-ink);
 }
 
 .chat-code-block pre {
   margin: 0;
   border: none;
   border-radius: 0;
+  background: var(--code-bg) !important;
+  color: var(--code-fg);
 }
 
 .chat-markdown blockquote {
@@ -422,11 +542,11 @@ body {
   }
 
   .neo-frame {
-    box-shadow: 6px 6px 0 color-mix(in oklab, var(--neo-ink) 66%, transparent);
+    box-shadow: 6px 6px 0 var(--neo-shadow-hard);
   }
 
   .neo-frame-soft {
-    box-shadow: 4px 4px 0 color-mix(in oklab, var(--neo-ink) 48%, transparent);
+    box-shadow: 4px 4px 0 var(--neo-shadow-soft);
   }
 }
 

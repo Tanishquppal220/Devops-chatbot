@@ -6,6 +6,8 @@ import type { Conversation } from '../../types/chat';
 interface SidebarProps {
   conversations: Conversation[];
   activeId: string | null;
+  isBackendReady: boolean;
+  isCheckingBackend: boolean;
   isOpen: boolean;
   onClose: () => void;
   onNewChat: () => void;
@@ -16,12 +18,25 @@ interface SidebarProps {
 export default function Sidebar({
   conversations,
   activeId,
+  isBackendReady,
+  isCheckingBackend,
   isOpen,
   onClose,
   onNewChat,
   onSelect,
   onDelete,
 }: SidebarProps) {
+  const backendLabel = isCheckingBackend
+    ? 'Checking Backend'
+    : isBackendReady
+      ? 'Backend Connected'
+      : 'Backend Starting...';
+  const statusColorClass = isBackendReady
+    ? 'bg-[var(--neo-success)]'
+    : isCheckingBackend
+      ? 'bg-[var(--neo-accent)]'
+      : 'bg-[var(--neo-danger)]';
+
   return (
     <>
       {/* Mobile overlay */}
@@ -122,8 +137,8 @@ export default function Sidebar({
         {/* Footer */}
         <div className="p-3 border-t border-[color:color-mix(in_oklab,var(--neo-ink)_25%,transparent)]">
           <div className="neo-frame-soft px-2.5 py-2 flex items-center gap-2">
-            <div className="size-2 bg-[var(--neo-success)] animate-pulse-glow" />
-            <span className="text-[10px] text-[var(--neo-ink-soft)] font-mono uppercase">Backend Connected</span>
+            <div className={`size-2 ${statusColorClass} ${isBackendReady ? 'animate-pulse-glow' : 'animate-pulse'}`} />
+            <span className="text-[10px] text-[var(--neo-ink-soft)] font-mono uppercase">{backendLabel}</span>
           </div>
         </div>
       </aside>

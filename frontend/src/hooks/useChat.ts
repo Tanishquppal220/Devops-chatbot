@@ -13,12 +13,14 @@ import type {
 } from '../types/chat';
 import {
   checkEdgeRuntimeStatus,
+  checkHealth,
   createConversation,
   deleteConversationById,
   fetchConversationMessages,
   fetchConversations,
   streamAnalysis,
   updateConversationTitle,
+  waitForHealthyApi,
 } from '../utils/api';
 
 const HISTORY_WINDOW_SIZE = 8;
@@ -59,9 +61,12 @@ export function useChat() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isBackendReady, setIsBackendReady] = useState(false);
+  const [isCheckingBackend, setIsCheckingBackend] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
   const loadedConversationIdsRef = useRef<Set<string>>(new Set());
   const loadingConversationIdsRef = useRef<Set<string>>(new Set());
+  const hasLoadedConversationListRef = useRef(false);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) ?? null;
   const messages = activeConversation?.messages ?? [];
@@ -87,26 +92,51 @@ export function useChat() {
 
   useEffect(() => {
     let cancelled = false;
+    let timeoutId: number | null = null;
 
-    async function loadConversations() {
-      try {
-        const items = await fetchConversations();
+    const pollHealth = async () => {
+      const healthy = await checkHealth();
+      if (cancelled) return;
+      setIsBackendReady(healthy);
+      setIsCheckingBackend(false);
+      timeoutId = window.setTimeout(pollHealth, healthy ? 10000 : 1500);
+    };
+
+    void pollHealth();
+    return () => {
+      cancelled = true;
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isBackendReady || hasLoadedConversationListRef.current) return;
+
+    let cancelled = false;
+    setIsLoading(true);
+    void fetchConversations()
+      .then((items) => {
         if (cancelled) return;
         const normalized = items.map(toConversation);
         setConversations(normalized);
         if (normalized.length > 0) {
           setActiveConversationId(normalized[0].id);
         }
-      } catch {
+        hasLoadedConversationListRef.current = true;
+      })
+      .catch(() => {
         // Keep UI usable even when persistence backend is unavailable.
-      }
-    }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
 
-    void loadConversations();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isBackendReady]);
 
   useEffect(() => {
     if (!activeConversationId) return;
@@ -270,6 +300,10 @@ export function useChat() {
             throw new Error(edgeStatus.reason || 'Edge runtime unavailable');
           }
         }
+        const backendHealthy = await waitForHealthyApi({ attempts: 14, intervalMs: 500 });
+        if (!backendHealthy) {
+          throw new Error('Backend is still starting. Wait few seconds, then retry.');
+        }
 
         await streamAnalysis(
           {
@@ -383,6 +417,8 @@ export function useChat() {
     messages,
     isStreaming,
     isLoading,
+    isBackendReady,
+    isCheckingBackend,
     newChat,
     switchConversation,
     deleteConversation,

@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { AgentMode, DeploymentTarget, Message } from '../../types/chat';
 import MessageBubble from './MessageBubble';
-import TypingIndicator from './TypingIndicator';
+import GenerationStatus from './GenerationStatus';
 import ChatInput from './ChatInput';
 import WelcomeScreen from './WelcomeScreen';
 
 interface ChatWindowProps {
   messages: Message[];
   isStreaming: boolean;
+  isLoading: boolean;
   onSend: (
     command: string,
     codebasePath: string,
@@ -23,6 +24,7 @@ interface ChatWindowProps {
 export default function ChatWindow({
   messages,
   isStreaming,
+  isLoading,
   onSend,
   onCancel,
   hasActiveConversation,
@@ -47,12 +49,12 @@ export default function ChatWindow({
   }, []);
 
   const showWelcome = !hasActiveConversation || messages.length === 0;
-  const showTyping =
-    isStreaming &&
-    messages.length > 0 &&
-    messages[messages.length - 1]?.role === 'assistant' &&
-    messages[messages.length - 1]?.content === '' &&
-    (messages[messages.length - 1]?.progressSteps?.length ?? 0) === 0;
+  const latestAssistant = [...messages]
+    .reverse()
+    .find((msg) => msg.role === 'assistant' && msg.isStreaming);
+  const showGenerationStatus =
+    isStreaming && !!latestAssistant && latestAssistant.content.trim().length === 0;
+  const latestStepLabel = latestAssistant?.progressSteps?.at(-1)?.label;
 
   return (
     <div className="flex flex-col h-full w-full neo-frame">
@@ -65,7 +67,10 @@ export default function ChatWindow({
             {messages.map((msg) => (
               <MessageBubble key={msg.id} message={msg} />
             ))}
-            {showTyping && <TypingIndicator />}
+            {showGenerationStatus && <GenerationStatus stepLabel={latestStepLabel} />}
+            {!showGenerationStatus && isLoading && !isStreaming && (
+              <GenerationStatus stepLabel="Syncing conversation state..." variant="sync" />
+            )}
             {/* Scroll anchor */}
             <div className="h-1" />
           </div>

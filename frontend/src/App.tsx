@@ -19,6 +19,9 @@ export default function App() {
     activeConversationId,
     messages,
     isStreaming,
+    isLoading,
+    isBackendReady,
+    isCheckingBackend,
     newChat,
     switchConversation,
     deleteConversation,
@@ -35,6 +38,8 @@ export default function App() {
       conversations={conversations}
       activeConversationId={activeConversationId}
       agentLabel={agentLabel}
+      isBackendReady={isBackendReady}
+      isCheckingBackend={isCheckingBackend}
       onNewChat={newChat}
       onSelectConversation={switchConversation}
       onDeleteConversation={deleteConversation}
@@ -42,6 +47,7 @@ export default function App() {
       <ChatWindow
         messages={messages}
         isStreaming={isStreaming}
+        isLoading={isLoading}
         onSend={sendMessage}
         onCancel={cancelStream}
         hasActiveConversation={!!activeConversation}
