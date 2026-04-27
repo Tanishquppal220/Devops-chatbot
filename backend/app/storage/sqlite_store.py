@@ -103,6 +103,21 @@ class ChatStore:
         ).fetchall()
         return [dict(r) for r in rows]
 
+    def update_conversation_title(self, conversation_id: str, title: str) -> bool:
+        """Update one conversation title and timestamp."""
+        now = self._now()
+        with self._lock:
+            result = self._conn.execute(
+                """
+                UPDATE conversations
+                SET title = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (title, now, conversation_id),
+            )
+            self._conn.commit()
+            return result.rowcount > 0
+
     def add_message(
         self,
         conversation_id: str,

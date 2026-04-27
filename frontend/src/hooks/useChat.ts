@@ -18,6 +18,7 @@ import {
   fetchConversationMessages,
   fetchConversations,
   streamAnalysis,
+  updateConversationTitle,
 } from '../utils/api';
 
 const HISTORY_WINDOW_SIZE = 8;
@@ -59,6 +60,8 @@ export function useChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const loadedConversationIdsRef = useRef<Set<string>>(new Set());
+  const loadingConversationIdsRef = useRef<Set<string>>(new Set());
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) ?? null;
   const messages = activeConversation?.messages ?? [];
@@ -107,28 +110,31 @@ export function useChat() {
 
   useEffect(() => {
     if (!activeConversationId) return;
-    const active = conversations.find((c) => c.id === activeConversationId);
-    if (!active || active.messages.length > 0) return;
+    if (loadedConversationIdsRef.current.has(activeConversationId)) return;
+    if (loadingConversationIdsRef.current.has(activeConversationId)) return;
 
     let cancelled = false;
+    loadingConversationIdsRef.current.add(activeConversationId);
     setIsLoading(true);
     void fetchConversationMessages(activeConversationId)
       .then((records) => {
         if (cancelled) return;
         const mapped = records.map(toMessage);
         updateConvoMessages(activeConversationId, () => mapped);
+        loadedConversationIdsRef.current.add(activeConversationId);
       })
       .catch(() => {
         // Ignore to avoid blocking chat UX.
       })
       .finally(() => {
+        loadingConversationIdsRef.current.delete(activeConversationId);
         if (!cancelled) setIsLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [activeConversationId, conversations, updateConvoMessages]);
+  }, [activeConversationId, updateConvoMessages]);
 
   /** Create a new conversation and set it as active. */
   const newChat = useCallback(() => {
@@ -162,6 +168,8 @@ export function useChat() {
       void deleteConversationById(id).catch(() => {
         // Keep local deletion behavior if backend delete fails.
       });
+      loadedConversationIdsRef.current.delete(id);
+      loadingConversationIdsRef.current.delete(id);
       setConversations((prev) => prev.filter((c) => c.id !== id));
       if (activeConversationId === id) {
         const next = conversations.find((c) => c.id !== id);
@@ -226,11 +234,17 @@ export function useChat() {
 
       // Update title if this is the first message
       const isFirst = (conversations.find((c) => c.id === convoId)?.messages.length ?? 0) === 0;
+      const nextTitle = isFirst ? generateTitle(command) : undefined;
       updateConvoMessages(
         convoId,
         (msgs) => [...msgs, userMsg],
-        isFirst ? generateTitle(command) : undefined,
+        nextTitle,
       );
+      if (nextTitle) {
+        void updateConversationTitle(convoId, nextTitle).catch(() => {
+          // Keep local title even if backend update fails.
+        });
+      }
 
       // Create bot placeholder
       const botMsgId = generateId();

@@ -77,13 +77,13 @@ export default function ChatInput({
       {/* Codebase path input (collapsible) */}
       {showPath && (
         <div className="mb-3 animate-message-in">
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-base-content/40 mb-1 block">
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-[var(--neo-ink-soft)] mb-1 block">
             Codebase Path
           </label>
           <input
             id="codebase-path-input"
             type="text"
-            className="input input-bordered input-sm w-full bg-base-200/50 text-xs font-mono"
+            className="neo-control h-9 w-full px-3 text-xs font-mono rounded-[4px]"
             placeholder="/home/user/my-project"
             value={codebasePath}
             onChange={(e) => setCodebasePath(e.target.value)}
@@ -91,10 +91,10 @@ export default function ChatInput({
         </div>
       )}
 
-      <div className="flex items-end gap-2">
+      <div className="grid grid-cols-1 gap-2 md:gap-2.5 md:grid-cols-[7.5rem_8.2rem_2.75rem_minmax(0,1fr)_2.75rem] md:items-center">
         <select
           id="deployment-target-select"
-          className="select select-sm select-bordered bg-base-200/50 shrink-0 mb-0.5 w-28"
+          className="neo-control h-11 w-full px-2.5 text-xs font-semibold uppercase rounded-[4px]"
           value={deploymentTarget}
           onChange={(e) => setDeploymentTarget(e.target.value as DeploymentTarget)}
           disabled={isStreaming}
@@ -106,7 +106,7 @@ export default function ChatInput({
 
         <select
           id="mode-select"
-          className="select select-sm select-bordered bg-base-200/50 shrink-0 mb-0.5 w-28"
+          className="neo-control h-11 w-full px-2.5 text-xs font-semibold uppercase rounded-[4px]"
           value={mode}
           onChange={(e) => setMode(e.target.value as AgentMode)}
           disabled={isStreaming}
@@ -122,8 +122,8 @@ export default function ChatInput({
         {/* Path toggle */}
         <button
           id="path-toggle-btn"
-          className={`btn btn-ghost btn-sm btn-circle shrink-0 mb-0.5 transition-colors ${
-            showPath ? 'text-primary bg-primary/10' : 'text-base-content/40'
+          className={`neo-btn h-11 w-11 grid place-items-center ${
+            showPath ? 'bg-[var(--neo-accent)] text-[var(--neo-ink)]' : 'bg-[var(--neo-bg)] text-[var(--neo-ink-soft)]'
           }`}
           onClick={() => setShowPath((p) => !p)}
           aria-label="Set codebase path"
@@ -133,12 +133,12 @@ export default function ChatInput({
         </button>
 
         {/* Message textarea */}
-        <div className="flex-1 relative">
+        <div className="relative">
           <textarea
             id="chat-input"
             ref={textareaRef}
-            className="textarea textarea-bordered w-full min-h-11 max-h-40 resize-none bg-base-200/50 text-sm leading-relaxed pr-12 rounded-xl focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
-            placeholder="Ask about Dockerfiles, tests, bundle size, or production readiness…"
+            className="neo-control w-full h-11 min-h-11 max-h-40 resize-none text-sm leading-[1.45] pr-3 pl-3 py-2.5 transition-all rounded-[4px]"
+            placeholder="Ask about Dockerfiles, tests, bundle size, or production readiness..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -151,7 +151,7 @@ export default function ChatInput({
         {isStreaming ? (
           <button
             id="stop-btn"
-            className="btn btn-error btn-sm btn-circle shrink-0 mb-0.5 shadow-lg shadow-error/20"
+            className="neo-btn neo-btn-danger h-11 w-11 grid place-items-center"
             onClick={onCancel}
             aria-label="Stop generating"
           >
@@ -160,7 +160,7 @@ export default function ChatInput({
         ) : (
           <button
             id="send-btn"
-            className="btn btn-primary btn-sm btn-circle shrink-0 mb-0.5 shadow-lg shadow-primary/20 disabled:shadow-none transition-shadow"
+            className="neo-btn neo-btn-primary h-11 w-11 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={handleSubmit}
             disabled={!message.trim()}
             aria-label="Send message"
@@ -170,8 +170,8 @@ export default function ChatInput({
         )}
       </div>
 
-      <p className="text-[10px] text-base-content/30 text-center mt-2">
-        Press <kbd className="kbd kbd-xs">Enter</kbd> to send · <kbd className="kbd kbd-xs">Shift + Enter</kbd> for new line
+      <p className="type-label text-[10px] text-[var(--neo-ink-soft)] text-center mt-2">
+        Enter to send | Shift + Enter new line
       </p>
     </div>
   );

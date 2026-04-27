@@ -11,40 +11,40 @@ interface HeaderProps {
 
 export default function Header({ onToggleSidebar, agentLabel, isSidebarOpen }: HeaderProps) {
   return (
-    <header
-      id="app-header"
-      className="navbar bg-base-100/75 backdrop-blur-xl border-b border-base-300/50 sticky top-0 z-30 px-4"
-    >
-      <div className="flex-none">
+    <header id="app-header" className="sticky top-0 z-30 neo-frame">
+      <div className="flex h-14 items-center gap-3 px-3 md:h-15 md:px-4">
         <button
           id="sidebar-toggle"
-          className={`btn btn-ghost btn-circle btn-sm transition-colors ${
-            isSidebarOpen ? 'text-primary bg-primary/10' : ''
+          className={`neo-btn size-9 grid place-items-center shrink-0 ${
+            isSidebarOpen ? 'bg-[var(--neo-primary)] text-white' : 'bg-[var(--neo-bg)] text-[var(--neo-ink)]'
           }`}
           onClick={onToggleSidebar}
           aria-label="Toggle sidebar"
         >
-          <Menu className="size-5" />
+          <Menu className="size-4" />
         </button>
-      </div>
 
-      <div className="flex-1 flex items-center gap-3 ml-2">
-        {/* Logo */}
-        <div className="size-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <span className="text-white font-bold text-sm">⚡</span>
-        </div>
-        <div>
-          <h1 className="text-base font-bold tracking-tight">DevOps Copilot</h1>
-          {agentLabel && (
-            <p className="text-[10px] font-medium text-primary/80 uppercase tracking-wider">
-              {agentLabel}
+        <div className="flex-1 flex items-center gap-3 min-w-0">
+          <div className="size-9 border-2 border-[var(--neo-ink)] rounded-[4px] bg-[var(--neo-accent)] text-[var(--neo-ink)] grid place-items-center font-black text-xs shadow-[3px_3px_0_color-mix(in_oklab,var(--neo-ink)_52%,transparent)]">
+            DO
+          </div>
+          <div className="min-w-0">
+            <h1 className="type-display text-sm md:text-[1.06rem] font-bold uppercase">DevOps Copilot</h1>
+            <p className="type-label text-[10px] md:text-[11px] text-[var(--neo-ink-soft)]">
+              Fast Chat. Precise Infra Answers.
             </p>
-          )}
+          </div>
         </div>
-      </div>
 
-      <div className="flex-none flex items-center gap-1">
-        <ThemeToggle />
+        {agentLabel && (
+          <div className="hidden md:flex neo-chip max-w-[32ch] truncate" title={agentLabel}>
+            {agentLabel}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

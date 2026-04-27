@@ -14,6 +14,7 @@ from app.models.schemas import (
     AnalyzeResponse,
     ConversationCreateRequest,
     ConversationResponse,
+    ConversationUpdateRequest,
     StoredMessageResponse,
 )
 from app.storage.sqlite_store import get_chat_store
@@ -150,6 +151,20 @@ async def list_conversations():
     """List recent conversations."""
     store = get_chat_store()
     return [ConversationResponse(**item) for item in store.list_conversations()]
+
+
+@router.patch("/conversations/{conversation_id}", response_model=ConversationResponse)
+async def update_conversation(conversation_id: str, payload: ConversationUpdateRequest):
+    """Update one conversation title."""
+    store = get_chat_store()
+    cleaned_title = payload.title.strip() or "New Chat"
+    updated = store.update_conversation_title(conversation_id, cleaned_title)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    conversation = store.get_conversation(conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return ConversationResponse(**conversation)
 
 
 @router.get("/conversations/{conversation_id}/messages", response_model=list[StoredMessageResponse])
