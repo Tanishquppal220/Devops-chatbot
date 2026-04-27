@@ -55,13 +55,13 @@ export default function ChatWindow({
     (messages[messages.length - 1]?.progressSteps?.length ?? 0) === 0;
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full neo-frame">
       {/* Messages area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 md:px-6 pt-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-2.5 md:px-5 pt-3 md:pt-4">
         {showWelcome ? (
           <WelcomeScreen onPrompt={handleWelcomePrompt} />
         ) : (
-          <div className="w-full py-2 md:py-4">
+          <div className="w-full py-2 md:py-3">
             {messages.map((msg) => (
               <MessageBubble key={msg.id} message={msg} />
             ))}
@@ -73,7 +73,7 @@ export default function ChatWindow({
       </div>
 
       {/* Input bar */}
-      <div className="w-full border-t border-base-300/50 bg-base-100/80 backdrop-blur-xl px-3 md:px-6">
+      <div className="w-full border-t border-[color:color-mix(in_oklab,var(--neo-ink)_25%,transparent)] px-2.5 md:px-5 bg-[var(--neo-bg-soft)] rounded-b-[calc(var(--surface-radius)-1px)]">
         <ChatInput
           onSend={onSend}
           isStreaming={isStreaming}

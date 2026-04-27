@@ -118,6 +118,22 @@ export async function fetchConversationMessages(
   return (await response.json()) as StoredMessageRecord[];
 }
 
+export async function updateConversationTitle(
+  conversationId: string,
+  title: string,
+): Promise<ConversationRecord> {
+  const response = await fetch(`${API_BASE}/api/v1/conversations/${conversationId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Update conversation failed ${response.status}: ${text}`);
+  }
+  return (await response.json()) as ConversationRecord;
+}
+
 export async function deleteConversationById(conversationId: string): Promise<void> {
   const response = await fetch(`${API_BASE}/api/v1/conversations/${conversationId}`, {
     method: 'DELETE',

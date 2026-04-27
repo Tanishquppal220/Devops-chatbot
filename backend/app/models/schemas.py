@@ -84,6 +84,12 @@ class ConversationCreateRequest(BaseModel):
     title: str = Field(default="New Chat", description="Conversation title")
 
 
+class ConversationUpdateRequest(BaseModel):
+    """Update conversation request body."""
+
+    title: str = Field(default="New Chat", description="Conversation title")
+
+
 class ConversationResponse(BaseModel):
     """Conversation metadata returned to clients."""
 

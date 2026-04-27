@@ -5,11 +5,11 @@ import ChatWindow from './components/chat/ChatWindow';
 import { useChat } from './hooks/useChat';
 
 const AGENT_LABELS: Record<string, string> = {
-  general: '💬 General DevOps Assistant',
-  dockerfile: '🐳 Dockerfile Agent',
-  testcase: '🧪 Test Case Agent',
-  bundlesize: '📦 Bundle Size Agent',
-  production: '🔒 Production Agent',
+  general: 'General DevOps Assistant',
+  dockerfile: 'Dockerfile Agent',
+  testcase: 'Test Case Agent',
+  bundlesize: 'Bundle Size Agent',
+  production: 'Production Agent',
 };
 
 export default function App() {
