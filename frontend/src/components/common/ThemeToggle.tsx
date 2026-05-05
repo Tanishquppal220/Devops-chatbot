@@ -19,7 +19,7 @@ export default function ThemeToggle() {
   return (
     <label
       id="theme-toggle"
-      className="swap swap-rotate btn btn-ghost btn-circle btn-sm"
+      className="swap swap-rotate neo-btn size-9 grid place-items-center"
       aria-label="Toggle theme"
     >
       <input
@@ -28,9 +28,9 @@ export default function ThemeToggle() {
         onChange={() => setIsDark((d) => !d)}
       />
       {/* Sun icon — shown when dark mode is active (click to switch to light) */}
-      <Sun className="swap-off size-5 text-amber-400" />
+      <Sun className="swap-off size-4 text-amber-500" />
       {/* Moon icon — shown when light mode is active (click to switch to dark) */}
-      <Moon className="swap-on size-5 text-indigo-500" />
+      <Moon className="swap-on size-4 text-indigo-600" />
     </label>
   );
 }

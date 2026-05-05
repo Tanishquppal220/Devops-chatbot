@@ -3,11 +3,10 @@
 import logging
 from typing import Optional
 
-from app.config import get_settings
 from app.models.state import AgentState
 from app.prompts.library import get_prompt
+from app.llm import build_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 logger = logging.getLogger("devops_chatbot.agents.router_node")
 SPECIALIST_INTENTS = {"dockerfile", "testcase", "bundlesize", "production"}
@@ -104,19 +103,15 @@ async def router_node(state: AgentState) -> dict:
         logger.info("Explicit mode override selected: %s", mode)
         return {"intent": mode, "routing_source": "explicit"}
 
-    settings = get_settings()
     classifier_prompt = get_prompt("routing-classifier")
     context_prompt = get_prompt("routing-context-aware")
+    runtime = state["model_runtime"]
 
     # 2) Context-aware auto routing using recent history
     history_text = _history_to_text(state.get("conversation_history", []))
     if history_text:
         logger.info("Attempting context-aware routing using recent history")
-        llm = ChatGoogleGenerativeAI(
-            model=settings.model_name,
-            google_api_key=settings.google_api_key,
-            temperature=0,
-        )
+        llm = build_chat_model(runtime=runtime, temperature=0)
         context_request = (
             f"Recent conversation:\n{history_text}\n\n"
             f"Latest user request:\n{state['command']}"
@@ -154,11 +149,7 @@ async def router_node(state: AgentState) -> dict:
     # 4) LLM fallback
     logger.info(
         "No keyword match found, using LLM fallback for intent classification")
-    llm = ChatGoogleGenerativeAI(
-        model=settings.model_name,
-        google_api_key=settings.google_api_key,
-        temperature=0,
-    )
+    llm = build_chat_model(runtime=runtime, temperature=0)
     response = await llm.ainvoke(
         [
             SystemMessage(content=classifier_prompt),
@@ -183,3 +174,4 @@ async def router_node(state: AgentState) -> dict:
     else:
         logger.info("LLM fallback intent selected: %s", intent)
     return {"intent": intent, "routing_source": "llm-fallback"}
+

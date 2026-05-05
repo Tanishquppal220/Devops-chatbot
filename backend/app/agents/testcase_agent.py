@@ -3,9 +3,8 @@
 import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
 
-from app.config import get_settings
+from app.llm import build_chat_model
 from app.models.state import AgentState
 from app.prompts.library import get_prompt
 
@@ -14,17 +13,13 @@ logger = logging.getLogger("devops_chatbot.agents.testcase_agent")
 
 async def testcase_node(state: AgentState) -> dict:
     """Generate comprehensive test cases for the codebase."""
-    settings = get_settings()
+    runtime = state["model_runtime"]
     logger.info(
-        "Starting testcase agent for command=%s using model=%s",
+        "Starting testcase agent for command=%s runtime=%s",
         state["command"],
-        settings.model_name,
+        runtime,
     )
-    llm = ChatGoogleGenerativeAI(
-        model=settings.model_name,
-        google_api_key=settings.google_api_key,
-        temperature=0.4,
-    )
+    llm = build_chat_model(runtime=runtime, temperature=0.4)
     system_prompt = get_prompt("testcase")
 
     user_msg = (
@@ -41,3 +36,4 @@ async def testcase_node(state: AgentState) -> dict:
         len(response.content) if response.content else 0,
     )
     return {"result": response.content, "messages": [response]}
+

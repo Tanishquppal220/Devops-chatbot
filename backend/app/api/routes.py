@@ -8,11 +8,13 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.agents.graph import graph
+from app.llm import get_edge_runtime_status
 from app.models.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
     ConversationCreateRequest,
     ConversationResponse,
+    ConversationUpdateRequest,
     StoredMessageResponse,
 )
 from app.storage.sqlite_store import get_chat_store
@@ -110,6 +112,26 @@ def _content_to_text(content: object) -> str:
     return str(content)
 
 
+def _resolve_model_runtime(request: AnalyzeRequest) -> str:
+    """Resolve runtime from request while preferring edge when selected in UI."""
+    if request.deployment_target == "edge" or request.model_runtime in {"edge", "lmstudio"}:
+        return "edge"
+    return "cloud"
+
+
+def _assert_edge_runtime_active(runtime: str):
+    """Fail fast when edge runtime is selected but LM Studio model is not active."""
+    if runtime != "edge":
+        return
+    status = get_edge_runtime_status()
+    if status["active"]:
+        return
+    raise HTTPException(
+        status_code=503,
+        detail=status["reason"] or "Edge runtime is not active",
+    )
+
+
 @router.post("/conversations", response_model=ConversationResponse)
 async def create_conversation(payload: ConversationCreateRequest):
     """Create and return a new conversation record."""
@@ -118,11 +140,31 @@ async def create_conversation(payload: ConversationCreateRequest):
     return ConversationResponse(**created)
 
 
+@router.get("/runtime/edge/status")
+async def edge_runtime_status():
+    """Return LM Studio edge runtime status."""
+    return get_edge_runtime_status()
+
+
 @router.get("/conversations", response_model=list[ConversationResponse])
 async def list_conversations():
     """List recent conversations."""
     store = get_chat_store()
     return [ConversationResponse(**item) for item in store.list_conversations()]
+
+
+@router.patch("/conversations/{conversation_id}", response_model=ConversationResponse)
+async def update_conversation(conversation_id: str, payload: ConversationUpdateRequest):
+    """Update one conversation title."""
+    store = get_chat_store()
+    cleaned_title = payload.title.strip() or "New Chat"
+    updated = store.update_conversation_title(conversation_id, cleaned_title)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    conversation = store.get_conversation(conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return ConversationResponse(**conversation)
 
 
 @router.get("/conversations/{conversation_id}/messages", response_model=list[StoredMessageResponse])
@@ -166,6 +208,8 @@ async def analyze_stream(request: AnalyzeRequest):
     )
 
     has_codebase_path = bool(request.codebase_path.strip())
+    runtime = _resolve_model_runtime(request)
+    _assert_edge_runtime_active(runtime)
     conversation_id = _resolve_conversation(request)
     store = get_chat_store()
     store.add_message(
@@ -195,6 +239,7 @@ async def analyze_stream(request: AnalyzeRequest):
                 "command": request.command,
                 "codebase_path": request.codebase_path,
                 "mode": request.mode,
+                "model_runtime": runtime,
                 "conversation_history": conversation_history,
                 "intent": "",
                 "routing_source": "",
@@ -367,6 +412,8 @@ async def analyze(request: AnalyzeRequest):
         len(request.conversation_history),
     )
     has_codebase_path = bool(request.codebase_path.strip())
+    runtime = _resolve_model_runtime(request)
+    _assert_edge_runtime_active(runtime)
     conversation_id = _resolve_conversation(request)
     store = get_chat_store()
     store.add_message(
@@ -388,6 +435,7 @@ async def analyze(request: AnalyzeRequest):
             "command": request.command,
             "codebase_path": request.codebase_path,
             "mode": request.mode,
+            "model_runtime": runtime,
             "conversation_history": conversation_history,
             "intent": "",
             "routing_source": "",

@@ -1,16 +1,22 @@
 /** Main chat window — message list + input bar. */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { AgentMode, Message } from '../../types/chat';
+import type { AgentMode, DeploymentTarget, Message } from '../../types/chat';
 import MessageBubble from './MessageBubble';
-import TypingIndicator from './TypingIndicator';
+import GenerationStatus from './GenerationStatus';
 import ChatInput from './ChatInput';
 import WelcomeScreen from './WelcomeScreen';
 
 interface ChatWindowProps {
   messages: Message[];
   isStreaming: boolean;
-  onSend: (command: string, codebasePath: string, mode: AgentMode) => void;
+  isLoading: boolean;
+  onSend: (
+    command: string,
+    codebasePath: string,
+    mode: AgentMode,
+    deploymentTarget: DeploymentTarget,
+  ) => void;
   onCancel: () => void;
   hasActiveConversation: boolean;
 }
@@ -18,6 +24,7 @@ interface ChatWindowProps {
 export default function ChatWindow({
   messages,
   isStreaming,
+  isLoading,
   onSend,
   onCancel,
   hasActiveConversation,
@@ -42,25 +49,28 @@ export default function ChatWindow({
   }, []);
 
   const showWelcome = !hasActiveConversation || messages.length === 0;
-  const showTyping =
-    isStreaming &&
-    messages.length > 0 &&
-    messages[messages.length - 1]?.role === 'assistant' &&
-    messages[messages.length - 1]?.content === '' &&
-    (messages[messages.length - 1]?.progressSteps?.length ?? 0) === 0;
+  const latestAssistant = [...messages]
+    .reverse()
+    .find((msg) => msg.role === 'assistant' && msg.isStreaming);
+  const showGenerationStatus =
+    isStreaming && !!latestAssistant && latestAssistant.content.trim().length === 0;
+  const latestStepLabel = latestAssistant?.progressSteps?.at(-1)?.label;
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full neo-frame">
       {/* Messages area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 md:px-6 pt-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-2.5 md:px-5 pt-3 md:pt-4">
         {showWelcome ? (
           <WelcomeScreen onPrompt={handleWelcomePrompt} />
         ) : (
-          <div className="w-full py-2 md:py-4">
+          <div className="w-full py-2 md:py-3">
             {messages.map((msg) => (
               <MessageBubble key={msg.id} message={msg} />
             ))}
-            {showTyping && <TypingIndicator />}
+            {showGenerationStatus && <GenerationStatus stepLabel={latestStepLabel} />}
+            {!showGenerationStatus && isLoading && !isStreaming && (
+              <GenerationStatus stepLabel="Syncing conversation state..." variant="sync" />
+            )}
             {/* Scroll anchor */}
             <div className="h-1" />
           </div>
@@ -68,7 +78,7 @@ export default function ChatWindow({
       </div>
 
       {/* Input bar */}
-      <div className="w-full border-t border-base-300/50 bg-base-100/80 backdrop-blur-xl px-3 md:px-6">
+      <div className="w-full border-t border-[color:color-mix(in_oklab,var(--neo-ink)_25%,transparent)] px-2.5 md:px-5 bg-[var(--neo-bg-soft)] rounded-b-[calc(var(--surface-radius)-1px)]">
         <ChatInput
           onSend={onSend}
           isStreaming={isStreaming}

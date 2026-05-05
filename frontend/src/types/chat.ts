@@ -1,6 +1,7 @@
 /** Shared TypeScript types for the chat system. */
 
 export type AgentMode = 'auto' | 'general' | 'dockerfile' | 'testcase' | 'bundlesize' | 'production';
+export type DeploymentTarget = 'edge' | 'cloud';
 
 export interface Message {
   id: string;
@@ -8,6 +9,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   mode?: AgentMode;
+  deploymentTarget?: DeploymentTarget;
   agent?: string;
   filesAnalyzed?: number;
   isStreaming?: boolean;

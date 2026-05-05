@@ -11,13 +11,13 @@ interface MessageBubbleProps {
 }
 
 const AGENT_META: Record<string, { icon: typeof Bot; color: string; label: string }> = {
-  general: { icon: Bot, color: 'from-cyan-500 to-teal-500', label: 'General DevOps Assistant' },
-  dockerfile: { icon: FileCode2, color: 'from-blue-500 to-cyan-500', label: 'Dockerfile Agent' },
-  testcase: { icon: TestTube, color: 'from-violet-500 to-purple-500', label: 'Test Case Agent' },
-  bundlesize: { icon: Package, color: 'from-amber-500 to-orange-500', label: 'Bundle Size Agent' },
+  general: { icon: Bot, color: 'bg-[var(--neo-primary)]', label: 'General DevOps Assistant' },
+  dockerfile: { icon: FileCode2, color: 'bg-sky-600', label: 'Dockerfile Agent' },
+  testcase: { icon: TestTube, color: 'bg-fuchsia-600', label: 'Test Case Agent' },
+  bundlesize: { icon: Package, color: 'bg-amber-600', label: 'Bundle Size Agent' },
   production: {
     icon: ShieldCheck,
-    color: 'from-emerald-500 to-teal-500',
+    color: 'bg-emerald-600',
     label: 'Production Readiness',
   },
 };
@@ -70,15 +70,15 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   };
 
   return (
-    <div className={`flex gap-3 px-4 py-2 animate-message-in ${isUser ? 'justify-end' : ''}`}>
+    <div className={`flex gap-3 px-2 py-2 animate-message-in ${isUser ? 'justify-end' : ''}`}>
       {!isUser && (
         <div
           className={`
-            size-8 rounded-xl shrink-0 flex items-center justify-center shadow-md
+            size-8 shrink-0 flex items-center justify-center border-2 border-[var(--neo-ink)] rounded-[4px] shadow-[3px_3px_0_color-mix(in_oklab,var(--neo-ink)_52%,transparent)]
             ${
               agentInfo
-                ? `bg-linear-to-br ${agentInfo.color}`
-                : 'bg-linear-to-br from-cyan-500 to-teal-500'
+                ? `${agentInfo.color}`
+                : 'bg-[var(--neo-primary)]'
             }
           `}
         >
@@ -88,11 +88,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
       <div
         className={`
-          max-w-[min(90%,80ch)] rounded-2xl px-4 py-3 text-sm leading-relaxed
+          max-w-[min(92%,78ch)] px-4 py-3 text-sm leading-relaxed border-2 rounded-[4px]
           ${
             isUser
-              ? 'bg-primary text-primary-content rounded-br-md'
-              : 'bg-base-200/80 border border-base-300/40 rounded-bl-md'
+              ? 'bg-[color:color-mix(in_oklab,var(--neo-primary)_90%,#fff_10%)] text-white border-[var(--neo-ink)] shadow-[6px_6px_0_color-mix(in_oklab,var(--neo-primary)_45%,var(--neo-ink)_55%)]'
+              : 'bg-[var(--neo-bg-soft)] border-[var(--neo-ink)] shadow-[5px_5px_0_color-mix(in_oklab,var(--neo-ink)_45%,transparent)]'
           }
         `}
       >
@@ -101,7 +101,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             {message.progressSteps.map((step, i) => (
               <span
                 key={i}
-                className="badge badge-sm badge-ghost gap-1 text-[10px] font-medium border-base-300/50"
+                className="neo-chip"
               >
                 {step.label}
               </span>
@@ -112,13 +112,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {!isUser && agentInfo && !message.isStreaming && (
           <div className="flex items-center gap-1.5 mb-2">
             <span
-              className={`badge badge-xs bg-linear-to-r ${agentInfo.color} text-white border-0 text-[9px] font-semibold px-2`}
+              className={`inline-flex items-center h-5 px-2 text-[9px] font-semibold uppercase tracking-wide text-white border-2 border-[var(--neo-ink)] rounded-[4px] ${agentInfo.color}`}
             >
               {agentInfo.label}
             </span>
             {message.filesAnalyzed !== undefined && message.filesAnalyzed > 0 && (
-              <span className="text-[10px] text-base-content/40 font-medium">
-                {'\u00B7'} {message.filesAnalyzed} files analyzed
+              <span className="text-[10px] text-[var(--neo-ink-soft)] font-medium uppercase">
+                {message.filesAnalyzed} files analyzed
               </span>
             )}
           </div>
@@ -129,7 +129,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             <button
               type="button"
               onClick={copyMessage}
-              className="btn btn-ghost btn-xs gap-1.5 text-base-content/70 hover:text-base-content"
+              className="neo-btn h-6 px-2 text-[10px] uppercase tracking-wide flex items-center gap-1.5"
               aria-label="Copy message"
               title="Copy message"
             >
@@ -195,13 +195,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         ) : null}
 
         {message.isStreaming && (
-          <span className="inline-block w-1.5 h-4 bg-primary/70 rounded-sm animate-pulse ml-0.5 align-text-bottom" />
+          <span className="inline-block w-1.5 h-4 bg-[var(--neo-accent)] animate-pulse ml-0.5 align-text-bottom" />
         )}
       </div>
 
       {isUser && (
-        <div className="size-8 rounded-xl shrink-0 flex items-center justify-center bg-base-300/80 shadow-sm">
-          <User className="size-4 text-base-content/60" />
+        <div className="size-8 shrink-0 flex items-center justify-center bg-[var(--neo-accent)] border-2 border-[var(--neo-ink)] rounded-[4px] shadow-[3px_3px_0_color-mix(in_oklab,var(--neo-ink)_52%,transparent)]">
+          <User className="size-4 text-[var(--neo-ink)]" />
         </div>
       )}
     </div>

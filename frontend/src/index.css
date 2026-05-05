@@ -5,28 +5,89 @@
 
 /* ── Custom theme tokens ──────────────────────────────────────── */
 @theme {
-  --font-sans: 'Manrope', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Plus Jakarta Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Plus Jakarta Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 [data-theme='light'] {
-  --p: oklch(0.56 0.15 230);
-  --s: oklch(0.66 0.12 172);
-  --a: oklch(0.74 0.12 72);
-  --b1: oklch(0.985 0.003 240);
-  --b2: oklch(0.96 0.008 240);
-  --b3: oklch(0.92 0.012 240);
-  --bc: oklch(0.23 0.03 240);
+  --p: oklch(0.56 0.18 266);
+  --s: oklch(0.66 0.14 76);
+  --a: oklch(0.71 0.15 48);
+  --b1: oklch(0.97 0.003 250);
+  --b2: oklch(0.94 0.006 250);
+  --b3: oklch(0.9 0.008 250);
+  --bc: oklch(0.22 0.03 255);
+  --neo-bg: #f7f6f2;
+  --neo-bg-soft: #eceae3;
+  --neo-ink: #151b24;
+  --neo-ink-soft: #5a6472;
+  --neo-primary: #3654ff;
+  --neo-accent: #ff9352;
+  --neo-success: #168a61;
+  --neo-danger: #d14444;
+  --neo-surface: #eceae3;
+  --neo-surface-soft: #f3f1eb;
+  --neo-border: #1b222d;
+  --neo-border-soft: #5e6978;
+  --neo-shadow-hard: rgba(22, 30, 42, 0.56);
+  --neo-shadow-soft: rgba(22, 30, 42, 0.38);
+  --neo-btn-bg: #f4f1e9;
+  --neo-control-bg: #f8f7f3;
+  --bg-glow-a: rgba(54, 84, 255, 0.16);
+  --bg-glow-b: rgba(255, 147, 82, 0.13);
+  --bg-stripe: rgba(54, 84, 255, 0.08);
+  --code-bg: #101722;
+  --code-fg: #e6efff;
+  --code-border: #242f42;
+  --code-inline-bg: color-mix(in oklab, var(--neo-bg-soft) 88%, var(--neo-border) 12%);
+  --code-header-bg: color-mix(in oklab, var(--neo-bg-soft) 82%, var(--neo-border) 18%);
+  --code-copy-bg: #e8e3da;
+  --code-copy-color: var(--neo-ink);
 }
 
 [data-theme='dark'] {
-  --p: oklch(0.72 0.13 222);
-  --s: oklch(0.71 0.1 168);
-  --a: oklch(0.79 0.11 82);
-  --b1: oklch(0.19 0.02 250);
-  --b2: oklch(0.23 0.02 250);
-  --b3: oklch(0.27 0.022 250);
-  --bc: oklch(0.93 0.01 250);
+  --p: oklch(0.73 0.11 269);
+  --s: oklch(0.60 0.08 62);
+  --a: oklch(0.58 0.10 38);
+  --b1: oklch(0.18 0.010 266);
+  --b2: oklch(0.22 0.012 266);
+  --b3: oklch(0.26 0.013 266);
+  --bc: oklch(0.88 0.01 255);
+  --neo-bg: #0b1016;
+  --neo-bg-soft: #141c26;
+  --neo-ink: #d9e0ea;
+  --neo-ink-soft: #8a97a8;
+  --neo-primary: #5e6dd0;
+  --neo-accent: #5a76c9;
+  --neo-success: #42917d;
+  --neo-danger: #bc675f;
+  --neo-surface: #161d27;
+  --neo-surface-soft: #111722;
+  --neo-border: #32415a;
+  --neo-border-soft: #293749;
+  --neo-shadow-hard: rgba(0, 0, 0, 0.72);
+  --neo-shadow-soft: rgba(0, 0, 0, 0.55);
+  --neo-btn-bg: #171f2b;
+  --neo-control-bg: #10161f;
+  --bg-glow-a: rgba(98, 110, 192, 0.09);
+  --bg-glow-b: rgba(90, 118, 201, 0.06);
+  --bg-stripe: rgba(255, 255, 255, 0.02);
+  --code-bg: #111825;
+  --code-fg: #d1dae6;
+  --code-border: #1f2a3b;
+  --code-inline-bg: color-mix(in oklab, var(--neo-surface) 96%, var(--neo-border) 4%);
+  --code-header-bg: color-mix(in oklab, var(--neo-surface) 92%, var(--neo-border) 8%);
+  --code-copy-bg: #10161f;
+  --code-copy-color: var(--neo-ink-soft);
+}
+
+:root {
+  --surface-radius: 6px;
+  --surface-radius-sm: 4px;
+  --surface-border: 2.5px;
+  --surface-shadow: 8px 8px 0 color-mix(in oklab, var(--neo-ink) 72%, transparent);
+  --surface-shadow-soft: 5px 5px 0 color-mix(in oklab, var(--neo-ink) 52%, transparent);
 }
 
 /* ── Base styles ──────────────────────────────────────────────── */
@@ -38,6 +99,19 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--neo-bg);
+  color: var(--neo-ink);
+}
+
+.type-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.type-label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 #root {
@@ -48,6 +122,7 @@ body {
 .app-shell {
   position: relative;
   isolation: isolate;
+  background: var(--neo-bg);
 }
 
 .app-shell::before {
@@ -56,28 +131,106 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(70rem 30rem at 8% -10%, oklch(0.75 0.08 220 / 0.2), transparent 65%),
-    radial-gradient(52rem 26rem at 102% 110%, oklch(0.72 0.1 170 / 0.2), transparent 65%);
+    radial-gradient(60rem 24rem at -12% -18%, var(--bg-glow-a), transparent 68%),
+    radial-gradient(56rem 28rem at 112% 118%, var(--bg-glow-b), transparent 70%),
+    repeating-linear-gradient(
+      -35deg,
+      var(--bg-stripe) 0 18px,
+      transparent 18px 36px
+    );
+  opacity: 0.62;
   z-index: -1;
+}
+
+.neo-frame {
+  border: var(--surface-border) solid var(--neo-border);
+  border-radius: var(--surface-radius);
+  box-shadow: 8px 8px 0 var(--neo-shadow-hard);
+  background: var(--neo-surface);
+}
+
+.neo-frame-soft {
+  border: var(--surface-border) solid var(--neo-border-soft);
+  border-radius: var(--surface-radius-sm);
+  box-shadow: 5px 5px 0 var(--neo-shadow-soft);
+  background: var(--neo-surface-soft);
+}
+
+.neo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: var(--surface-border) solid var(--neo-border);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--neo-primary) 24%, var(--neo-surface));
+  color: var(--neo-ink);
+  padding: 0.22rem 0.56rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.neo-btn {
+  border: var(--surface-border) solid var(--neo-border);
+  border-radius: var(--surface-radius-sm);
+  box-shadow: 3px 3px 0 var(--neo-shadow-hard);
+  background: var(--neo-btn-bg);
+  color: var(--neo-ink);
+  transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.neo-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--neo-shadow-hard);
+  background: color-mix(in oklab, var(--neo-btn-bg) 82%, white 18%);
+}
+
+.neo-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--neo-shadow-hard);
+}
+
+.neo-btn-primary {
+  background: color-mix(in oklab, var(--neo-primary) 92%, #fff 8%);
+  color: #ffffff;
+}
+
+.neo-btn-danger {
+  background: color-mix(in oklab, var(--neo-danger) 85%, #fff 15%);
+  color: #ffffff;
+}
+
+.neo-control {
+  border: var(--surface-border) solid var(--neo-border-soft);
+  border-radius: var(--surface-radius-sm);
+  background: var(--neo-control-bg);
+  color: var(--neo-ink);
+  outline: none;
+}
+
+.neo-control:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--neo-primary) 45%, transparent);
 }
 
 /* ── Scrollbar styling ────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: color-mix(in oklab, var(--neo-bg-soft) 80%, transparent);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.6 0.02 260);
-  border-radius: 9999px;
+  background: var(--neo-ink);
+  border-radius: 999px;
+  border: 2px solid var(--neo-bg-soft);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.5 0.03 260);
+  background: var(--neo-primary);
 }
 
 /* ── Message entrance animation ───────────────────────────────── */
@@ -97,20 +250,98 @@ body {
 }
 
 /* ── Typing dots animation ────────────────────────────────────── */
-@keyframes bounce-dot {
-  0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.4;
+@keyframes status-bar-rise {
+  0%, 100% {
+    transform: scaleY(0.45);
+    opacity: 0.55;
   }
-  40% {
-    transform: scale(1);
+  50% {
+    transform: scaleY(1);
     opacity: 1;
   }
 }
 
-.animate-dot-1 { animation: bounce-dot 1.4s infinite 0s; }
-.animate-dot-2 { animation: bounce-dot 1.4s infinite 0.2s; }
-.animate-dot-3 { animation: bounce-dot 1.4s infinite 0.4s; }
+@keyframes status-sheen {
+  from {
+    background-position: -220% 0;
+  }
+  to {
+    background-position: 220% 0;
+  }
+}
+
+.generation-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: var(--surface-border) solid var(--neo-border-soft);
+  border-radius: var(--surface-radius-sm);
+  background:
+    linear-gradient(
+      105deg,
+      color-mix(in oklab, var(--neo-bg-soft) 78%, transparent) 0%,
+      color-mix(in oklab, var(--neo-primary) 14%, var(--neo-bg-soft) 86%) 50%,
+      color-mix(in oklab, var(--neo-bg-soft) 82%, transparent) 100%
+    );
+  background-size: 220% 100%;
+  animation: status-sheen 3.2s linear infinite;
+  padding: 0.7rem 0.85rem;
+  box-shadow: 4px 4px 0 color-mix(in oklab, var(--neo-ink) 45%, transparent);
+}
+
+.generation-status__bars {
+  display: inline-flex;
+  align-items: end;
+  gap: 0.2rem;
+  height: 1.05rem;
+}
+
+.generation-status__bars > span {
+  width: 0.16rem;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--neo-primary) 78%, var(--neo-ink) 22%);
+  transform-origin: bottom;
+  animation: status-bar-rise 1.2s ease-in-out infinite;
+}
+
+.generation-status__bars > span:nth-child(2) { animation-delay: 120ms; }
+.generation-status__bars > span:nth-child(3) { animation-delay: 240ms; }
+.generation-status__bars > span:nth-child(4) { animation-delay: 360ms; }
+
+.generation-status__title {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--neo-ink);
+}
+
+.generation-status__subtitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin: 0.1rem 0 0;
+  color: var(--neo-ink-soft);
+}
+
+.generation-status__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.9rem;
+  height: 1.45rem;
+  border: var(--surface-border) solid var(--neo-border);
+  border-radius: 3px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: color-mix(in oklab, var(--neo-primary) 75%, var(--neo-bg) 25%);
+  color: #fff;
+}
 
 /* ── Pulse glow for streaming indicator ───────────────────────── */
 @keyframes pulse-glow {
@@ -189,17 +420,20 @@ body {
   font-family: var(--font-mono);
   font-size: 0.85em;
   padding: 0.15em 0.4em;
-  border-radius: 0.375rem;
-  background: oklch(0.3 0.01 260 / 0.3);
+  border-radius: 0.4rem;
+  background: var(--code-inline-bg);
+  border: 1px solid var(--code-border);
+  color: var(--code-inline-fg);
 }
 
 .chat-markdown pre {
   margin: 0.75em 0;
   padding: 1em;
-  border-radius: 0.75rem;
+  border-radius: 0.35rem;
   overflow-x: auto;
-  background: oklch(0.15 0.01 260) !important;
-  border: 1px solid oklch(0.3 0.01 260 / 0.3);
+  background: var(--code-bg) !important;
+  color: var(--code-fg);
+  border: var(--surface-border) solid var(--code-border);
 }
 
 .chat-markdown pre code {
@@ -207,12 +441,13 @@ body {
   padding: 0;
   font-size: 0.8em;
   line-height: 1.6;
+  color: var(--code-fg);
 }
 
 .chat-code-block {
   margin: 0.75em 0;
-  border: 1px solid oklch(0.3 0.01 260 / 0.3);
-  border-radius: 0.75rem;
+  border: var(--surface-border) solid var(--code-border);
+  border-radius: 0.35rem;
   overflow: hidden;
 }
 
@@ -222,40 +457,44 @@ body {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.35rem 0.65rem;
-  background: oklch(0.23 0.01 260 / 0.9);
-  border-bottom: 1px solid oklch(0.3 0.01 260 / 0.3);
+  background: var(--code-header-bg);
+  border-bottom: var(--surface-border) solid color-mix(in oklab, var(--neo-ink) 48%, transparent);
 }
 
 .chat-code-block__lang {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   text-transform: lowercase;
-  color: oklch(0.78 0.01 260);
+  color: var(--neo-ink-soft);
+  font-weight: 600;
 }
 
 .chat-code-block__copy {
-  border: none;
-  border-radius: 0.375rem;
-  background: transparent;
-  color: oklch(0.82 0.01 260);
+  border: var(--surface-border) solid var(--neo-border);
+  border-radius: 0.25rem;
+  background: var(--code-copy-bg);
+  color: var(--code-copy-color);
   font-size: 0.75rem;
   padding: 0.2rem 0.45rem;
   cursor: pointer;
+  font-weight: 700;
 }
 
 .chat-code-block__copy:hover {
-  background: oklch(0.35 0.01 260 / 0.5);
-  color: oklch(0.95 0.01 260);
+  background: color-mix(in oklab, var(--neo-border) 60%, var(--code-copy-bg) 40%);
+  color: var(--neo-ink);
 }
 
 .chat-code-block pre {
   margin: 0;
   border: none;
   border-radius: 0;
+  background: var(--code-bg) !important;
+  color: var(--code-fg);
 }
 
 .chat-markdown blockquote {
-  border-left: 3px solid oklch(0.7 0.15 180);
+  border-left: 3px solid var(--neo-primary);
   padding-left: 1em;
   margin: 0.75em 0;
   opacity: 0.9;
@@ -270,30 +509,45 @@ body {
 
 .chat-markdown th,
 .chat-markdown td {
-  border: 1px solid oklch(0.4 0.01 260 / 0.3);
+  border: 2px solid color-mix(in oklab, var(--neo-ink) 55%, transparent);
   padding: 0.5em 0.75em;
   text-align: left;
 }
 
 .chat-markdown th {
-  background: oklch(0.25 0.01 260 / 0.3);
+  background: color-mix(in oklab, var(--neo-primary) 15%, transparent);
   font-weight: 600;
 }
 
 .chat-markdown hr {
   border: none;
-  border-top: 1px solid oklch(0.4 0.01 260 / 0.2);
+  border-top: 2px solid color-mix(in oklab, var(--neo-ink) 35%, transparent);
   margin: 1em 0;
 }
 
 .chat-markdown a {
-  color: oklch(0.75 0.15 200);
+  color: var(--neo-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .chat-markdown a:hover {
-  color: oklch(0.85 0.15 200);
+  color: color-mix(in oklab, var(--neo-primary) 70%, var(--neo-ink));
+}
+
+@media (max-width: 768px) {
+  :root {
+    --surface-radius: 5px;
+    --surface-radius-sm: 3px;
+  }
+
+  .neo-frame {
+    box-shadow: 6px 6px 0 var(--neo-shadow-hard);
+  }
+
+  .neo-frame-soft {
+    box-shadow: 4px 4px 0 var(--neo-shadow-soft);
+  }
 }
 
 /* ── Progress chip animation ──────────────────────────────────── */

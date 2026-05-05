@@ -31,6 +31,14 @@ class AnalyzeRequest(BaseModel):
         default="auto",
         description="Routing mode; explicit mode overrides auto classification",
     )
+    deployment_target: Literal["edge", "cloud"] = Field(
+        default="cloud",
+        description="Execution target preference from UI",
+    )
+    model_runtime: Literal["cloud", "edge", "lmstudio"] = Field(
+        default="cloud",
+        description="Model runtime preference from UI",
+    )
     conversation_history: list[ConversationHistoryItem] = Field(
         default_factory=list,
         description="Recent chat history for context-aware auto routing",
@@ -72,6 +80,12 @@ class StreamEvent(BaseModel):
 
 class ConversationCreateRequest(BaseModel):
     """Create conversation request body."""
+
+    title: str = Field(default="New Chat", description="Conversation title")
+
+
+class ConversationUpdateRequest(BaseModel):
+    """Update conversation request body."""
 
     title: str = Field(default="New Chat", description="Conversation title")
 
