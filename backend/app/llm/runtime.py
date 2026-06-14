@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import json
-import logging
+
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 from app.config import get_settings
-
-logger = logging.getLogger("devops_chatbot.llm.runtime")
 
 
 def get_edge_runtime_status() -> dict:
@@ -28,7 +26,6 @@ def get_edge_runtime_status() -> dict:
         with urlopen(request, timeout=3) as response:
             payload = json.loads(response.read().decode("utf-8"))
     except URLError as exc:
-        logger.warning("Edge runtime check failed for %s: %s", models_url, exc)
         return {
             "active": False,
             "reachable": False,
@@ -37,7 +34,6 @@ def get_edge_runtime_status() -> dict:
             "reason": f"Cannot reach LM Studio at {models_url}",
         }
     except Exception as exc:
-        logger.warning("Edge runtime response parse failed: %s", exc)
         return {
             "active": False,
             "reachable": True,
@@ -70,4 +66,3 @@ def get_edge_runtime_status() -> dict:
         "loaded_models": loaded_models,
         "reason": reason,
     }
-

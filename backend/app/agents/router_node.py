@@ -1,6 +1,6 @@
 """Router node — resolves general vs specialist intent."""
 
-import logging
+
 from typing import Optional
 
 from app.models.state import AgentState
@@ -8,7 +8,6 @@ from app.prompts.library import get_prompt
 from app.llm import build_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 
-logger = logging.getLogger("devops_chatbot.agents.router_node")
 SPECIALIST_INTENTS = {"dockerfile", "testcase", "bundlesize", "production"}
 
 # Fast-path keyword map (checked before calling the LLM)
@@ -92,15 +91,12 @@ def _history_to_text(history: list[dict[str, str]], limit: int = 10) -> str:
 async def router_node(state: AgentState) -> dict:
     """Resolve routing via explicit mode, context-aware auto, and general default."""
     command = state["command"].lower()
-    logger.info("Routing command to intent: %s", command)
 
     # 1) Explicit mode override
     mode = state.get("mode", "auto")
     if mode == "general":
-        logger.info("Explicit mode override selected: general")
         return {"intent": "general", "routing_source": "explicit"}
     if mode in SPECIALIST_INTENTS:
-        logger.info("Explicit mode override selected: %s", mode)
         return {"intent": mode, "routing_source": "explicit"}
 
     classifier_prompt = get_prompt("routing-classifier")
@@ -110,7 +106,6 @@ async def router_node(state: AgentState) -> dict:
     # 2) Context-aware auto routing using recent history
     history_text = _history_to_text(state.get("conversation_history", []))
     if history_text:
-        logger.info("Attempting context-aware routing using recent history")
         llm = build_chat_model(runtime=runtime, temperature=0)
         context_request = (
             f"Recent conversation:\n{history_text}\n\n"
@@ -126,29 +121,18 @@ async def router_node(state: AgentState) -> dict:
         context_intent = _normalize_intent(context_text)
         if context_intent:
             if context_intent in SPECIALIST_INTENTS and not _is_strong_specialist_request(command):
-                logger.info(
-                    "Context-aware suggested %s but request is not strongly specialist; using general",
-                    context_intent,
-                )
                 return {"intent": "general", "routing_source": "general-default"}
-            logger.info("Context-aware intent selected: %s", context_intent)
             return {"intent": context_intent, "routing_source": "context-aware"}
-        logger.warning(
-            "Context-aware router returned unknown intent: %s", response.content)
 
     # 3) Keyword fallback
     intent, score = _specialist_score(command)
     if intent and score >= 2:
-        logger.info("Fast-path intent selected: %s", intent)
         return {"intent": intent, "routing_source": "keyword"}
     if intent and score > 0:
-        logger.info(
-            "Specialist keywords are weak (score=%s), defaulting to general", score)
         return {"intent": "general", "routing_source": "general-default"}
 
     # 4) LLM fallback
-    logger.info(
-        "No keyword match found, using LLM fallback for intent classification")
+        # "No keyword match found, using LLM fallback for intent classification")
     llm = build_chat_model(runtime=runtime, temperature=0)
     response = await llm.ainvoke(
         [
@@ -159,19 +143,8 @@ async def router_node(state: AgentState) -> dict:
     intent_text = _response_to_text(response.content)
     intent = _normalize_intent(intent_text)
     if intent is None:
-        logger.warning(
-            "LLM returned unexpected intent '%s', defaulting to general",
-            response.content,
-        )
         intent = "general"
     elif intent in SPECIALIST_INTENTS and not _is_strong_specialist_request(command):
-        logger.info(
-            "LLM suggested %s but request is not strongly specialist; using general",
-            intent,
-        )
         intent = "general"
         return {"intent": intent, "routing_source": "general-default"}
-    else:
-        logger.info("LLM fallback intent selected: %s", intent)
     return {"intent": intent, "routing_source": "llm-fallback"}
-

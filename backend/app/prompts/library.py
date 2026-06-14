@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import logging
+
 from pathlib import Path
 from typing import Any
-
-logger = logging.getLogger("devops_chatbot.prompts.library")
 
 _PROMPT_CACHE: dict[str, str] = {}
 _PROMPT_META_CACHE: dict[str, dict[str, Any]] = {}
@@ -82,15 +80,16 @@ def get_prompt(name: str) -> str:
 
         _PROMPT_CACHE[name] = prompt
         _PROMPT_META_CACHE[name] = meta
-        logger.info("Loaded prompt '%s' from %s", name, prompt_path)
         return prompt
     except Exception as exc:
-        logger.warning(
-            "Failed to load prompt '%s' from %s (%s). Using fallback prompt.",
-            name,
-            prompt_path,
-            exc,
-        )
         _PROMPT_CACHE[name] = _FALLBACK_PROMPT
         _PROMPT_META_CACHE[name] = {"fallback": "true", "name": name}
         return _FALLBACK_PROMPT
+
+if __name__ == "__main__":
+    print("Available prompts:", list_available_prompts())
+    for name in list_available_prompts():
+        print(f"\n--- Prompt: {name} ---")
+        print(get_prompt(name))
+        print("Metadata:", get_prompt_metadata(name))
+    

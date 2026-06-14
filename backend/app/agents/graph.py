@@ -4,7 +4,6 @@ Flow:
     START → analyze_code → router → (general or one of 4 specialist agents) → END
 """
 
-import logging
 
 from langgraph.graph import END, START, StateGraph
 
@@ -17,20 +16,15 @@ from app.agents.testcase_agent import testcase_node
 from app.models.state import AgentState
 from app.tools.code_analyzer import analyze_codebase
 
-logger = logging.getLogger("devops_chatbot.agents.graph")
-
 
 # ── Shared node: analyse the codebase before routing ──────────────
 
 async def analyze_code_node(state: AgentState) -> dict:
     """Run the AST-based code analyser and populate code_context."""
     if not state["codebase_path"].strip():
-        logger.info("No codebase path provided, skipping code analysis")
         return {"code_context": "", "files_analyzed": 0}
 
-    logger.info("Starting code analysis for %s", state["codebase_path"])
     context, count = analyze_codebase(state["codebase_path"])
-    logger.info("Completed code analysis: files_analyzed=%s", count)
     return {"code_context": context, "files_analyzed": count}
 
 

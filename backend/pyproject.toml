@@ -14,4 +14,5 @@ dependencies = [
     "langgraph>=0.4.0",
     "python-dotenv>=1.1.0",
     "pydantic-settings>=2.8.0",
+    "langchain-aws>=1.4.6",
 ]

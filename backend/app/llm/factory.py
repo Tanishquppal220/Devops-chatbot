@@ -3,7 +3,8 @@
 from typing import Literal
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_aws import ChatBedrock
+# from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
 from app.config import get_settings
@@ -26,9 +27,16 @@ def build_chat_model(*, runtime: ModelRuntime, temperature: float) -> BaseChatMo
     settings = get_settings()
 
     if runtime == "cloud":
-        return ChatGoogleGenerativeAI(
+        # return ChatGoogleGenerativeAI(
+        #     model=_resolve_cloud_model_name(),
+        #     google_api_key=settings.google_api_key,
+        #     temperature=temperature,
+        # )
+        return ChatBedrock(
             model=_resolve_cloud_model_name(),
-            google_api_key=settings.google_api_key,
+            region_name=settings.aws_region,
+            aws_access_key_id=settings.aws_access_key_id,
+            aws_secret_access_key=settings.aws_secret_access_key,
             temperature=temperature,
         )
 

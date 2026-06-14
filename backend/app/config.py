@@ -11,6 +11,13 @@ class Settings(BaseSettings):
     # Cloud provider (Google)
     google_api_key: str = ""
     cloud_model_name: str = "gemini-2.0-flash"
+    
+    # AWS Bedrock
+    aws_region: str = ""
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    aws_session_token: str = ""
+    aws_bearer_token_bedrock: str = ""
 
     # Edge provider (LM Studio OpenAI-compatible API)
     lmstudio_base_url: str = "http://127.0.0.1:1234/v1"

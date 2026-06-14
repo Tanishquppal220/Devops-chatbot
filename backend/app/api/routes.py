@@ -1,7 +1,7 @@
 """API routes with real-time SSE streaming."""
 
 import json
-import logging
+#
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
@@ -19,7 +19,6 @@ from app.models.schemas import (
 )
 from app.storage.sqlite_store import get_chat_store
 
-logger = logging.getLogger("devops_chatbot.api.routes")
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 HISTORY_WINDOW_SIZE = 8
 
@@ -61,7 +60,8 @@ def _build_history(request: AnalyzeRequest, conversation_id: str) -> list[dict[s
         ]
 
     store = get_chat_store()
-    recent_messages = store.list_messages(conversation_id, limit=HISTORY_WINDOW_SIZE)
+    recent_messages = store.list_messages(
+        conversation_id, limit=HISTORY_WINDOW_SIZE)
     return [
         {
             "role": message["role"],
@@ -199,13 +199,6 @@ async def analyze_stream(request: AnalyzeRequest):
         error    — something went wrong
         done     — stream finished
     """
-    logger.info(
-        "Analyze stream request received: command=%s codebase_path=%s mode=%s history_items=%s",
-        request.command,
-        request.codebase_path,
-        request.mode,
-        len(request.conversation_history),
-    )
 
     has_codebase_path = bool(request.codebase_path.strip())
     runtime = _resolve_model_runtime(request)
@@ -221,7 +214,6 @@ async def analyze_stream(request: AnalyzeRequest):
 
     # Validate the path only when it is provided
     if has_codebase_path and not Path(request.codebase_path).is_dir():
-        logger.error("Invalid codebase path: %s", request.codebase_path)
         raise HTTPException(
             status_code=400,
             detail=f"Directory not found: {request.codebase_path}",
@@ -229,8 +221,6 @@ async def analyze_stream(request: AnalyzeRequest):
 
     async def event_generator():
         try:
-            logger.info("Starting analysis stream for path=%s",
-                        request.codebase_path)
             if has_codebase_path:
                 # Send initial progress
                 yield _sse({"type": "progress", "content": "🔍 Analyzing codebase..."})
@@ -282,7 +272,6 @@ async def analyze_stream(request: AnalyzeRequest):
                     if name in ("general", "dockerfile", "testcase", "bundlesize", "production"):
                         detected_agent = name
                     progress_message = labels.get(name, f"Running {name}...")
-                    logger.info("Progress step: %s", progress_message)
                     yield _sse({
                         "type": "progress",
                         "content": progress_message,
@@ -305,10 +294,6 @@ async def analyze_stream(request: AnalyzeRequest):
                             "bundlesize",
                             "production",
                         } and not "".join(accumulated_result).strip():
-                            logger.debug(
-                                "Skipping initial agent label token: %s",
-                                normalized_token,
-                            )
                             continue
 
                         accumulated_result.append(token_text)
@@ -324,9 +309,6 @@ async def analyze_stream(request: AnalyzeRequest):
                     output = event.get("data", {}).get("output", {})
                     if isinstance(output, dict):
                         files_count = output.get("files_analyzed", 0)
-                        logger.info(
-                            "Code analysis complete: files_analyzed=%s", files_count
-                        )
 
                 # Capture routing choice and surface it as a progress event
                 elif kind == "on_chain_end" and name == "router":
@@ -335,11 +317,6 @@ async def analyze_stream(request: AnalyzeRequest):
                         detected_agent = output.get("intent", detected_agent)
                         routing_source = output.get(
                             "routing_source", routing_source)
-                        logger.info(
-                            "Routing selected: agent=%s source=%s",
-                            detected_agent,
-                            routing_source or "unknown",
-                        )
                         if detected_agent:
                             yield _sse(
                                 {
@@ -353,12 +330,6 @@ async def analyze_stream(request: AnalyzeRequest):
                                 }
                             )
 
-            logger.info(
-                "Analysis complete; emitting result event agent=%s source=%s files_analyzed=%s",
-                detected_agent,
-                routing_source,
-                files_count,
-            )
             final_text = "".join(accumulated_result)
             store.add_message(
                 conversation_id=conversation_id,
@@ -376,7 +347,6 @@ async def analyze_stream(request: AnalyzeRequest):
             })
 
         except Exception as exc:
-            logger.exception("Error during analysis streaming")
             store.add_message(
                 conversation_id=conversation_id,
                 role="assistant",
@@ -384,8 +354,6 @@ async def analyze_stream(request: AnalyzeRequest):
             )
             yield _sse({"type": "error", "content": str(exc)})
 
-        logger.info(
-            "Analysis streaming generator finished for path=%s", request.codebase_path)
         yield _sse({"type": "done"})
 
     return StreamingResponse(
@@ -404,13 +372,6 @@ async def analyze_stream(request: AnalyzeRequest):
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(request: AnalyzeRequest):
     """Analyse a codebase and return a single JSON response (no streaming)."""
-    logger.info(
-        "Analyze request received: command=%s codebase_path=%s mode=%s history_items=%s",
-        request.command,
-        request.codebase_path,
-        request.mode,
-        len(request.conversation_history),
-    )
     has_codebase_path = bool(request.codebase_path.strip())
     runtime = _resolve_model_runtime(request)
     _assert_edge_runtime_active(runtime)
@@ -424,7 +385,6 @@ async def analyze(request: AnalyzeRequest):
     conversation_history = _build_history(request, conversation_id)
 
     if has_codebase_path and not Path(request.codebase_path).is_dir():
-        logger.error("Invalid codebase path: %s", request.codebase_path)
         raise HTTPException(
             status_code=400,
             detail=f"Directory not found: {request.codebase_path}",
@@ -451,13 +411,6 @@ async def analyze(request: AnalyzeRequest):
         role="assistant",
         content=result.get("result", ""),
         agent=result.get("intent", ""),
-    )
-
-    logger.info(
-        "Analyze request completed: agent=%s source=%s files_analyzed=%s",
-        result.get("intent", "unknown"),
-        result.get("routing_source", "unknown"),
-        result.get("files_analyzed", 0),
     )
     return AnalyzeResponse(
         agent=result.get("intent", "unknown"),
